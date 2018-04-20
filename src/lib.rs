@@ -54,6 +54,7 @@ pub struct NotifierInfo {
     pub url: String,
     /// App version (e.g. `1.0.0`)
     pub version: String,
+    pub language: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -207,9 +208,10 @@ fn honeybadger_panic_hook(panic_info: &PanicInfo) {
         }
     }
     let notifier_info = Some(NotifierInfo {
-        name: env!("CARGO_PKG_NAME").to_string(),
-        url: env!("CARGO_PKG_HOMEPAGE").to_string(),
+        name: "honeybadger-rust".to_string(),
+        url: "https://github.com/qnighy/honeybadger-rs".to_string(),
         version: env!("CARGO_PKG_VERSION").to_string(),
+        language: "rust".to_string(),
     });
     let error = Error {
         class: "std::panic".to_string(),
