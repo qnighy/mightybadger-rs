@@ -37,7 +37,7 @@ pub enum HoneybadgerError {
 }
 
 /// Notification payload.
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Default)]
 pub struct HoneybadgerPayload {
     notifier: Option<NotifierInfo>,
     error: Error,
@@ -46,18 +46,15 @@ pub struct HoneybadgerPayload {
 }
 
 /// Information of the app that caused the error.
-#[derive(Debug, Serialize, Deserialize, Clone, Default)]
-pub struct NotifierInfo {
-    /// name of the app (e.g. `My Awesome To-Do App`)
-    pub name: String,
-    /// URL pointing to the app (e.g. `https://github.com/github/my-awesome-to-do-app`)
-    pub url: String,
-    /// App version (e.g. `1.0.0`)
-    pub version: String,
-    pub language: String,
+#[derive(Debug, Serialize, Clone)]
+struct NotifierInfo {
+    name: &'static str,
+    url: &'static str,
+    version: &'static str,
+    language: &'static str,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Default)]
 struct Error {
     class: String,
     message: String,
@@ -67,7 +64,7 @@ struct Error {
     causes: Vec<ErrorCause>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 struct BacktraceEntry {
     number: String,
     file: String,
@@ -75,20 +72,20 @@ struct BacktraceEntry {
     source: BTreeMap<u32, String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize)]
 struct ErrorCause {
     class: String,
     message: String,
     backtrace: Vec<BacktraceEntry>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize)]
 struct RequestInfo {
     url: String,
     cgi_data: HashMap<String, String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Default)]
 struct Server {}
 
 header! {
@@ -208,10 +205,10 @@ fn honeybadger_panic_hook(panic_info: &PanicInfo) {
         }
     }
     let notifier_info = Some(NotifierInfo {
-        name: "honeybadger-rust".to_string(),
-        url: "https://github.com/qnighy/honeybadger-rs".to_string(),
-        version: env!("CARGO_PKG_VERSION").to_string(),
-        language: "rust".to_string(),
+        name: "honeybadger-rust",
+        url: "https://github.com/qnighy/honeybadger-rs",
+        version: env!("CARGO_PKG_VERSION"),
+        language: "rust",
     });
     let error = Error {
         class: "std::panic".to_string(),
