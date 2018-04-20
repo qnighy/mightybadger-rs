@@ -1,8 +1,5 @@
 //! Honeybadger notifier for Rust.
 
-#[macro_use]
-extern crate lazy_static;
-
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
@@ -30,7 +27,6 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::mem;
 use std::panic::{set_hook, take_hook, PanicInfo};
-use std::sync::RwLock;
 use HoneybadgerError::*;
 
 /// Error occurred during Honeybadger reporting.
@@ -96,28 +92,6 @@ struct Server {}
 
 header! {
     (XApiKey, "X-API-Key") => [String]
-}
-
-#[macro_export]
-macro_rules! initialize_honeybadger {
-    () => {{
-        $crate::set_notifier_info($crate::NotifierInfo {
-            name: env!("CARGO_PKG_NAME").to_string(),
-            url: env!("CARGO_PKG_HOMEPAGE").to_string(),
-            version: env!("CARGO_PKG_VERSION").to_string(),
-        });
-        $crate::install_hook();
-    }};
-}
-
-lazy_static! {
-    static ref GLOBAL_NOTIFIER_INFO: RwLock<Option<NotifierInfo>> = RwLock::new(None);
-}
-
-/// Sets the notifier info. Typically used through `initialize_honeybadger!`.
-pub fn set_notifier_info(notifier_info: NotifierInfo) {
-    let mut global_notifier_info = GLOBAL_NOTIFIER_INFO.write().unwrap();
-    *global_notifier_info = Some(notifier_info);
 }
 
 pub fn report(payload: &HoneybadgerPayload) -> Result<(), HoneybadgerError> {
@@ -232,11 +206,11 @@ fn honeybadger_panic_hook(panic_info: &PanicInfo) {
             }
         }
     }
-    let notifier_info = if let Ok(global_notifier_info) = GLOBAL_NOTIFIER_INFO.read() {
-        global_notifier_info.clone()
-    } else {
-        None
-    };
+    let notifier_info = Some(NotifierInfo {
+        name: env!("CARGO_PKG_NAME").to_string(),
+        url: env!("CARGO_PKG_HOMEPAGE").to_string(),
+        version: env!("CARGO_PKG_VERSION").to_string(),
+    });
     let error = Error {
         class: "std::panic".to_string(),
         message: message,
