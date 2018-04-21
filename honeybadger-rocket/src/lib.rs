@@ -1,8 +1,11 @@
+extern crate honeybadger;
+extern crate rocket;
+
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::{Data, Request, Response};
 use std::cell::RefCell;
 use std::collections::HashMap;
-use {HoneybadgerPayload, Plugin, PluginError, RequestInfo};
+use honeybadger::{HoneybadgerPayload, Plugin, PluginError, RequestInfo};
 
 pub struct HoneybadgerHook {}
 
@@ -79,9 +82,9 @@ pub fn install() {
     static INSTALL_ONCE: Once = ONCE_INIT;
 
     INSTALL_ONCE.call_once(|| {
-        ::install_hook();
+        honeybadger::install_hook();
 
-        ::add_plugin(RocketPlugin);
+        honeybadger::add_plugin(RocketPlugin);
     });
 }
 

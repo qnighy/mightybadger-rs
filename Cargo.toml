@@ -4,9 +4,6 @@ version = "0.1.0"
 authors = ["Masaki Hara <ackie.h.gmai@gmail.com>"]
 build = "build.rs"
 
-[features]
-rocket_hook = ["rocket"]
-
 [dependencies]
 lazy_static = "1.0"
 serde = "1.0"
@@ -17,10 +14,9 @@ reqwest = "0.8.5"
 backtrace = "0.3"
 rustc_version_runtime = "0.1"
 
-rocket = { version = "0.3", optional = true }
-
 [workspace]
 
 members = [
+  "honeybadger-rocket",
   "rocket-example",
 ]

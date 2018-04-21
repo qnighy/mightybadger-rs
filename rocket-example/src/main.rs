@@ -2,6 +2,7 @@
 #![plugin(rocket_codegen)]
 
 extern crate honeybadger;
+extern crate honeybadger_rocket;
 extern crate rocket;
 
 #[get("/")]
@@ -21,9 +22,9 @@ fn error() -> &'static str {
 
 fn main() {
     honeybadger::install_hook();
-    honeybadger::rocket_hook::install();
+    honeybadger_rocket::install();
     rocket::ignite()
         .mount("/", routes![index, ping, error])
-        .attach(honeybadger::rocket_hook::HoneybadgerHook::new())
+        .attach(honeybadger_rocket::HoneybadgerHook::new())
         .launch();
 }

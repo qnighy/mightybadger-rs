@@ -15,12 +15,6 @@ extern crate reqwest;
 extern crate backtrace;
 extern crate rustc_version_runtime;
 
-#[cfg(feature = "rocket_hook")]
-extern crate rocket;
-
-#[cfg(feature = "rocket_hook")]
-pub mod rocket_hook;
-
 use backtrace::Backtrace;
 use reqwest::header::{qitem, Accept, ContentType, UserAgent};
 use reqwest::{mime, StatusCode};
@@ -45,7 +39,7 @@ pub enum HoneybadgerError {
 pub struct HoneybadgerPayload {
     notifier: Option<NotifierInfo>,
     error: Error,
-    request: Option<RequestInfo>,
+    pub request: Option<RequestInfo>,
     server: Server,
 }
 
@@ -84,9 +78,9 @@ struct ErrorCause {
 }
 
 #[derive(Debug, Clone, Serialize)]
-struct RequestInfo {
-    url: String,
-    cgi_data: HashMap<String, String>,
+pub struct RequestInfo {
+    pub url: String,
+    pub cgi_data: HashMap<String, String>,
 }
 
 #[derive(Debug, Serialize, Default)]

@@ -1,10 +1,8 @@
 [package]
-name = "rocket-example"
+name = "honeybadger-rocket"
 version = "0.1.0"
 authors = ["Masaki Hara <ackie.h.gmai@gmail.com>"]
 
 [dependencies]
-rocket = "0.3.7"
-rocket_codegen = "0.3.7"
+rocket = "0.3"
 honeybadger = { path = ".." }
-honeybadger-rocket = { path = "../honeybadger-rocket" }
