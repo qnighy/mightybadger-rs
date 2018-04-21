@@ -18,5 +18,7 @@ rustc_version_runtime = "0.1"
 
 members = [
   "honeybadger-rocket",
+  "honeybadger-gotham",
   "rocket-example",
+  "gotham-example",
 ]

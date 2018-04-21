@@ -1,0 +1,12 @@
+[package]
+name = "honeybadger-gotham"
+version = "0.1.0"
+authors = ["Masaki Hara <ackie.h.gmai@gmail.com>"]
+
+[dependencies]
+scoped-tls = "0.1.1"
+futures = "0.1"
+hyper = "0.11"
+gotham = "0.2.1"
+gotham_derive = "0.2.1"
+honeybadger = { path = ".." }

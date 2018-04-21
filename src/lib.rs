@@ -77,7 +77,7 @@ struct ErrorCause {
     backtrace: Vec<BacktraceEntry>,
 }
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, Default)]
 pub struct RequestInfo {
     pub url: String,
     pub cgi_data: HashMap<String, String>,
