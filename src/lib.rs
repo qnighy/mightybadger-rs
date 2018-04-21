@@ -156,11 +156,14 @@ fn honeybadger_panic_hook(panic_info: &PanicInfo) {
                 .filename()
                 .and_then(|filename| filename.to_str())
                 .unwrap_or("");
-            let method = symbol.name().and_then(|name| name.as_str()).unwrap_or("");
+            let method = symbol
+                .name()
+                .map(|name| name.to_string())
+                .unwrap_or_else(|| "".to_string());
             Some(BacktraceEntry {
                 number: number,
                 file: file.to_string(),
-                method: method.to_string(),
+                method: method,
                 source: BTreeMap::new(),
             })
         })
