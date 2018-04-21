@@ -1,5 +1,8 @@
 //! Honeybadger notifier for Rust.
 
+#[macro_use]
+extern crate lazy_static;
+
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
@@ -27,6 +30,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::mem;
 use std::panic::{set_hook, take_hook, PanicInfo};
+use std::sync::RwLock;
 use HoneybadgerError::*;
 
 /// Error occurred during Honeybadger reporting.
@@ -221,17 +225,19 @@ fn honeybadger_panic_hook(panic_info: &PanicInfo) {
         backtrace: backtrace,
         causes: vec![],
     };
-    #[cfg(not(feature = "rocket_hook"))]
-    let request_info = None;
-    #[cfg(feature = "rocket_hook")]
-    let request_info = rocket_hook::try_get();
     let server = Server {};
-    let payload = HoneybadgerPayload {
+    let mut payload = HoneybadgerPayload {
         notifier: notifier_info,
         error: error,
-        request: request_info,
+        request: None,
         server: server,
     };
+    match decorate_with_plugins(&mut payload) {
+        Err(PluginError::Other(msg)) => {
+            eprintln!("** [Honeybadger] Plugin error: {}", msg);
+        }
+        Ok(()) => {}
+    }
     match report(&payload) {
         Err(ReportUnable(msg)) => {
             eprintln!("** [Honeybadger] Unable to send error report: {}", msg);
@@ -257,4 +263,36 @@ pub fn install_hook() {
             honeybadger_panic_hook(panic_info);
         }));
     });
+}
+
+lazy_static! {
+    static ref PLUGINS: RwLock<Vec<Box<Plugin + Send + Sync>>> = RwLock::new(vec![]);
+}
+
+pub fn add_plugin<P: Plugin + Send + Sync + 'static>(plugin: P) {
+    let plugin: Box<Plugin + Send + Sync> = Box::new(plugin);
+    let mut plugins = PLUGINS.write().unwrap();
+    plugins.push(plugin);
+}
+
+/// Error occurred during Honeybadger plugin processing.
+#[derive(Debug)]
+pub enum PluginError {
+    Other(String),
+}
+
+fn decorate_with_plugins(payload: &mut HoneybadgerPayload) -> Result<(), PluginError> {
+    let plugins = PLUGINS
+        .read()
+        .map_err(|e| PluginError::Other(format!("Failed to read plugins: {}", e)))?;
+    for plugin in plugins.iter() {
+        if plugin.decorate(payload)? {
+            return Ok(());
+        }
+    }
+    Ok(())
+}
+
+pub trait Plugin {
+    fn decorate(&self, payload: &mut HoneybadgerPayload) -> Result<bool, PluginError>;
 }

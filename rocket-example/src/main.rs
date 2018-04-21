@@ -21,6 +21,7 @@ fn error() -> &'static str {
 
 fn main() {
     honeybadger::install_hook();
+    honeybadger::rocket_hook::install();
     rocket::ignite()
         .mount("/", routes![index, ping, error])
         .attach(honeybadger::rocket_hook::HoneybadgerHook::new())

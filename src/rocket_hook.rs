@@ -2,7 +2,7 @@ use rocket::fairing::{Fairing, Info, Kind};
 use rocket::{Data, Request, Response};
 use std::cell::RefCell;
 use std::collections::HashMap;
-use RequestInfo;
+use {HoneybadgerPayload, Plugin, PluginError, RequestInfo};
 
 pub struct HoneybadgerHook {}
 
@@ -16,7 +16,7 @@ thread_local! {
     static CURRENT_REQUEST: RefCell<Option<RequestInfo>> = RefCell::new(None);
 }
 
-pub(crate) fn try_get() -> Option<RequestInfo> {
+fn try_get() -> Option<RequestInfo> {
     CURRENT_REQUEST
         .try_with(|current_request| current_request.try_borrow().ok().and_then(|x| x.clone()))
         .ok()
@@ -70,5 +70,26 @@ impl Fairing for HoneybadgerHook {
         CURRENT_REQUEST.with(|current_request| {
             *current_request.borrow_mut() = None;
         });
+    }
+}
+
+pub fn install() {
+    use std::sync::{Once, ONCE_INIT};
+
+    static INSTALL_ONCE: Once = ONCE_INIT;
+
+    INSTALL_ONCE.call_once(|| {
+        ::install_hook();
+
+        ::add_plugin(RocketPlugin);
+    });
+}
+
+struct RocketPlugin;
+
+impl Plugin for RocketPlugin {
+    fn decorate(&self, payload: &mut HoneybadgerPayload) -> Result<bool, PluginError> {
+        payload.request = try_get();
+        Ok(true)
     }
 }
