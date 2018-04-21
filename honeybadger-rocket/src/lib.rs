@@ -63,6 +63,7 @@ impl Fairing for HoneybadgerHook {
         let request_info = RequestInfo {
             url: url,
             cgi_data: cgi_data,
+            ..Default::default()
         };
         CURRENT_REQUEST.with(|current_request| {
             *current_request.borrow_mut() = Some(request_info);
