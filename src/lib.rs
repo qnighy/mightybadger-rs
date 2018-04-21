@@ -37,6 +37,7 @@ pub enum HoneybadgerError {
 /// Notification payload.
 #[derive(Debug, Serialize, Default)]
 pub struct HoneybadgerPayload {
+    pub api_key: String,
     notifier: Option<NotifierInfo>,
     error: Error,
     pub request: Option<RequestInfo>,
@@ -91,12 +92,7 @@ header! {
 }
 
 pub fn report(payload: &HoneybadgerPayload) -> Result<(), HoneybadgerError> {
-    let api_key = env::var("HONEYBADGER_API_KEY").map_err(|e| match e {
-        env::VarError::NotPresent => ReportUnable(format!("API key is missing")),
-        env::VarError::NotUnicode(_) => {
-            ReportUnable(format!("API key is an invalid Unicode string"))
-        }
-    })?;
+    let api_key = payload.api_key.clone();
     let payload = serde_json::to_string(payload)
         .map_err(|e| ReportFailed(format!("could not assemble payload: {}", e)))?;
     // eprintln!("Payload = {}", payload);
@@ -129,6 +125,26 @@ pub fn report(payload: &HoneybadgerPayload) -> Result<(), HoneybadgerError> {
 }
 
 fn honeybadger_panic_hook(panic_info: &PanicInfo) {
+    match honeybadger_panic_hook_internal(panic_info) {
+        Err(ReportUnable(msg)) => {
+            eprintln!("** [Honeybadger] Unable to send error report: {}", msg);
+        }
+        Err(ReportFailed(msg)) => {
+            eprintln!("** [Honeybadger] Error report failed: {}", msg);
+        }
+        Ok(()) => {
+            eprintln!("** [Honeybadger] Success ⚡");
+        }
+    }
+}
+
+fn honeybadger_panic_hook_internal(panic_info: &PanicInfo) -> Result<(), HoneybadgerError> {
+    let api_key = env::var("HONEYBADGER_API_KEY").map_err(|e| match e {
+        env::VarError::NotPresent => ReportUnable(format!("API key is missing")),
+        env::VarError::NotUnicode(_) => {
+            ReportUnable(format!("API key is an invalid Unicode string"))
+        }
+    })?;
     let message = if let Some(message) = panic_info.payload().downcast_ref::<String>() {
         message.to_string()
     } else if let Some(message) = panic_info.payload().downcast_ref::<&'static str>() {
@@ -221,6 +237,7 @@ fn honeybadger_panic_hook(panic_info: &PanicInfo) {
     };
     let server = Server {};
     let mut payload = HoneybadgerPayload {
+        api_key: api_key,
         notifier: notifier_info,
         error: error,
         request: None,
@@ -232,17 +249,8 @@ fn honeybadger_panic_hook(panic_info: &PanicInfo) {
         }
         Ok(()) => {}
     }
-    match report(&payload) {
-        Err(ReportUnable(msg)) => {
-            eprintln!("** [Honeybadger] Unable to send error report: {}", msg);
-        }
-        Err(ReportFailed(msg)) => {
-            eprintln!("** [Honeybadger] Error report failed: {}", msg);
-        }
-        Ok(()) => {
-            eprintln!("** [Honeybadger] Success ⚡");
-        }
-    }
+    report(&payload)?;
+    Ok(())
 }
 
 pub fn install_hook() {
