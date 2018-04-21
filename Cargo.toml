@@ -1,8 +1,16 @@
 [package]
 name = "honeybadger"
+description = "Honeybadger Notifier for Rust"
 version = "0.1.0"
 authors = ["Masaki Hara <ackie.h.gmai@gmail.com>"]
 build = "build.rs"
+
+homepage = "https://github.com/qnighy/honeybadger-rs"
+repository = "https://github.com/qnighy/honeybadger-rs.git"
+readme = "README.md"
+keywords = ["honeybadger"]
+categories = ["web-programming", "api-bindings", "development-tools"]
+license = "MIT"
 
 [dependencies]
 lazy_static = "1.0"

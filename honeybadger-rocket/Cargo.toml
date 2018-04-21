@@ -1,7 +1,15 @@
 [package]
 name = "honeybadger-rocket"
+description = "Honeybadger Notifier for Rust, middleware for Rocket"
 version = "0.1.0"
 authors = ["Masaki Hara <ackie.h.gmai@gmail.com>"]
+
+homepage = "https://github.com/qnighy/honeybadger-rs"
+repository = "https://github.com/qnighy/honeybadger-rs.git"
+readme = "README.md"
+keywords = ["honeybadger", "rocket"]
+categories = ["web-programming", "api-bindings", "development-tools"]
+license = "MIT"
 
 [dependencies]
 rocket = "0.3"
