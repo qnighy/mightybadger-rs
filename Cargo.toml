@@ -17,3 +17,9 @@ backtrace = "0.3"
 rustc_version_runtime = "0.1"
 
 rocket = { version = "0.3", optional = true }
+
+[workspace]
+
+members = [
+  "rocket-example",
+]
