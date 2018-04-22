@@ -1,5 +1,6 @@
 //! Honeybadger notifier for Rust.
 
+extern crate chrono;
 #[macro_use]
 extern crate lazy_static;
 extern crate rand;
@@ -17,6 +18,7 @@ extern crate backtrace;
 extern crate rustc_version_runtime;
 
 use backtrace::Backtrace;
+use chrono::Utc;
 use reqwest::header::{qitem, Accept, ContentType, UserAgent};
 use reqwest::{mime, StatusCode};
 use std::collections::{BTreeMap, HashMap};
@@ -102,6 +104,18 @@ pub struct ServerInfo {
     pub stats: Stats,
     pub time: String,
     pub pid: u32,
+}
+
+impl ServerInfo {
+    pub fn generate() -> Self {
+        let time = Utc::now().format("%Y-%m-%d %H:%M:%S %Z").to_string();
+        let pid = 0; // TODO: wait for stabilization of std::process::id();
+        ServerInfo {
+            time: time,
+            pid: pid,
+            ..Default::default()
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Default)]
@@ -289,7 +303,7 @@ fn honeybadger_panic_hook_internal(
         backtrace: backtrace,
         causes: vec![],
     };
-    let server_info = ServerInfo::default();
+    let server_info = ServerInfo::generate();
     let mut payload = HoneybadgerPayload {
         api_key: api_key,
         notifier: notifier_info,
