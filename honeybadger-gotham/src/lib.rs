@@ -15,7 +15,8 @@ use gotham::state::{FromState, State};
 use gotham::handler::HandlerFuture;
 use futures::{Future, Poll};
 
-use honeybadger::{HoneybadgerPayload, Plugin, PluginError, RequestInfo};
+use honeybadger::{Payload, Plugin, PluginError};
+use honeybadger::payload::RequestInfo;
 
 #[derive(Clone, NewMiddleware)]
 pub struct HoneybadgerMiddleware;
@@ -91,7 +92,7 @@ pub fn install() {
 struct GothamPlugin;
 
 impl Plugin for GothamPlugin {
-    fn decorate(&self, payload: &mut HoneybadgerPayload) -> Result<bool, PluginError> {
+    fn decorate(&self, payload: &mut Payload) -> Result<bool, PluginError> {
         if !CURRENT_REQUEST.is_set() {
             return Ok(false);
         }

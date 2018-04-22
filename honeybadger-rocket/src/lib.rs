@@ -5,7 +5,8 @@ use rocket::fairing::{Fairing, Info, Kind};
 use rocket::{Data, Request, Response};
 use std::cell::RefCell;
 use std::collections::HashMap;
-use honeybadger::{HoneybadgerPayload, Plugin, PluginError, RequestInfo};
+use honeybadger::{Payload, Plugin, PluginError};
+use honeybadger::payload::RequestInfo;
 
 pub struct HoneybadgerHook {}
 
@@ -92,7 +93,7 @@ pub fn install() {
 struct RocketPlugin;
 
 impl Plugin for RocketPlugin {
-    fn decorate(&self, payload: &mut HoneybadgerPayload) -> Result<bool, PluginError> {
+    fn decorate(&self, payload: &mut Payload) -> Result<bool, PluginError> {
         payload.request = try_get();
         Ok(true)
     }
