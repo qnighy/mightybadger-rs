@@ -5,8 +5,8 @@ use rocket::fairing::{Fairing, Info, Kind};
 use rocket::{Data, Request, Response};
 use std::cell::RefCell;
 use std::collections::HashMap;
-use honeybadger::{Payload, Plugin, PluginError};
-use honeybadger::payload::RequestInfo;
+use honeybadger::payload::{Payload, RequestInfo};
+use honeybadger::plugin::{Plugin, PluginError};
 
 pub struct HoneybadgerHook {}
 

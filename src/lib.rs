@@ -18,6 +18,7 @@ extern crate backtrace;
 extern crate rustc_version_runtime;
 
 pub mod payload;
+pub mod plugin;
 
 use backtrace::Backtrace;
 use reqwest::header::{qitem, Accept, ContentType, UserAgent};
@@ -28,12 +29,12 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::mem;
 use std::panic::{set_hook, take_hook, PanicInfo};
-use std::sync::RwLock;
 use rand::Rng;
 use HoneybadgerError::*;
 use payload::*;
 
 pub use payload::Payload;
+pub use plugin::add_plugin;
 
 /// Error occurred during Honeybadger reporting.
 #[derive(Debug)]
@@ -213,8 +214,8 @@ fn honeybadger_panic_hook_internal(
         request: None,
         server: server_info,
     };
-    match decorate_with_plugins(&mut payload) {
-        Err(PluginError::Other(msg)) => {
+    match plugin::decorate_with_plugins(&mut payload) {
+        Err(plugin::PluginError::Other(msg)) => {
             eprintln!("** [Honeybadger] Plugin error: {}", msg);
         }
         Ok(()) => {}
@@ -235,38 +236,6 @@ pub fn install_hook() {
             honeybadger_panic_hook(panic_info);
         }));
     });
-}
-
-lazy_static! {
-    static ref PLUGINS: RwLock<Vec<Box<Plugin + Send + Sync>>> = RwLock::new(vec![]);
-}
-
-pub fn add_plugin<P: Plugin + Send + Sync + 'static>(plugin: P) {
-    let plugin: Box<Plugin + Send + Sync> = Box::new(plugin);
-    let mut plugins = PLUGINS.write().unwrap();
-    plugins.push(plugin);
-}
-
-/// Error occurred during Honeybadger plugin processing.
-#[derive(Debug)]
-pub enum PluginError {
-    Other(String),
-}
-
-fn decorate_with_plugins(payload: &mut Payload) -> Result<(), PluginError> {
-    let plugins = PLUGINS
-        .read()
-        .map_err(|e| PluginError::Other(format!("Failed to read plugins: {}", e)))?;
-    for plugin in plugins.iter() {
-        if plugin.decorate(payload)? {
-            return Ok(());
-        }
-    }
-    Ok(())
-}
-
-pub trait Plugin {
-    fn decorate(&self, payload: &mut Payload) -> Result<bool, PluginError>;
 }
 
 fn random_uuid() -> Option<String> {

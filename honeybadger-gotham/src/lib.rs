@@ -15,8 +15,8 @@ use gotham::state::{FromState, State};
 use gotham::handler::HandlerFuture;
 use futures::{Future, Poll};
 
-use honeybadger::{Payload, Plugin, PluginError};
-use honeybadger::payload::RequestInfo;
+use honeybadger::payload::{Payload, RequestInfo};
+use honeybadger::plugin::{Plugin, PluginError};
 
 #[derive(Clone, NewMiddleware)]
 pub struct HoneybadgerMiddleware;
