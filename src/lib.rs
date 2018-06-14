@@ -11,6 +11,9 @@ extern crate serde_derive;
 extern crate serde_json;
 
 #[macro_use]
+extern crate failure;
+
+#[macro_use]
 extern crate hyper;
 extern crate reqwest;
 
@@ -37,10 +40,20 @@ pub use payload::Payload;
 pub use plugin::add_plugin;
 
 /// Error occurred during Honeybadger reporting.
-#[derive(Debug)]
+#[derive(Debug, Fail)]
 pub enum HoneybadgerError {
-    ReportUnable(String),
-    ReportFailed(String),
+    #[fail(display = "could not assemble payload")]
+    CouldNotAssemblePayload(#[cause] serde_json::Error, failure::Backtrace),
+    #[fail(display = "HTTP request failed")]
+    HttpRequestFailed(#[cause] reqwest::Error, failure::Backtrace),
+    #[fail(display = "project is sending too many errors")]
+    TooManyRequests(failure::Backtrace),
+    #[fail(display = "payment is required")]
+    PaymentRequired(failure::Backtrace),
+    #[fail(display = "API key is invalid")]
+    Forbidden(failure::Backtrace),
+    #[fail(display = "unknown response from server")]
+    UnknownResponse(failure::Backtrace),
 }
 
 header! {
@@ -50,7 +63,7 @@ header! {
 pub fn report(payload: &Payload) -> Result<(), HoneybadgerError> {
     let api_key = payload.api_key.clone();
     let payload = serde_json::to_string(payload)
-        .map_err(|e| ReportFailed(format!("could not assemble payload: {}", e)))?;
+        .map_err(|e| CouldNotAssemblePayload(e, failure::Backtrace::new()))?;
     // eprintln!("Payload = {}", payload);
     let client = reqwest::Client::new();
     let client_version = format!(
@@ -67,15 +80,15 @@ pub fn report(payload: &Payload) -> Result<(), HoneybadgerError> {
         .header(Accept(vec![qitem(mime::APPLICATION_JSON)]))
         .header(UserAgent::new(client_version))
         .send();
-    let resp = resp.map_err(|e| ReportFailed(format!("HTTP request failed: {}", e)))?;
+    let resp = resp.map_err(|e| HttpRequestFailed(e, failure::Backtrace::new()))?;
     match resp.status() {
         StatusCode::TooManyRequests | StatusCode::ServiceUnavailable => {
-            return Err(ReportFailed(format!("project is sending too many errors.")))
+            return Err(TooManyRequests(failure::Backtrace::new()))
         }
-        StatusCode::PaymentRequired => return Err(ReportFailed(format!("payment is required."))),
-        StatusCode::Forbidden => return Err(ReportFailed(format!("API key is invalid."))),
+        StatusCode::PaymentRequired => return Err(PaymentRequired(failure::Backtrace::new())),
+        StatusCode::Forbidden => return Err(Forbidden(failure::Backtrace::new())),
         StatusCode::Created => {}
-        _ => return Err(ReportFailed(format!("unknown response from server."))),
+        _ => return Err(UnknownResponse(failure::Backtrace::new())),
     }
     Ok(())
 }
@@ -83,38 +96,35 @@ pub fn report(payload: &Payload) -> Result<(), HoneybadgerError> {
 fn honeybadger_panic_hook(panic_info: &PanicInfo) {
     let id = random_uuid();
     let iddisp = id.as_ref().map(|x| x.as_str()).unwrap_or("nil");
-    match honeybadger_panic_hook_internal(panic_info, &id) {
-        Err(ReportUnable(msg)) => {
+    let api_key = match env::var("HONEYBADGER_API_KEY") {
+        Err(env::VarError::NotPresent) => {
             eprintln!(
-                "** [Honeybadger] Unable to send error report: {}, id={}",
-                msg, iddisp
+                "** [Honeybadger] Unable to send error report: API key is missing, id={}",
+                iddisp
             );
+            return;
         }
-        Err(ReportFailed(msg)) => {
-            eprintln!(
-                "** [Honeybadger] Error report failed: {}, id={}",
-                msg, iddisp
-            );
+        Err(env::VarError::NotUnicode(_)) => {
+            eprintln!("** [Honeybadger] Unable to send error report: API key is an invalid Unicode string, id={}", iddisp);
+            return;
         }
-        Ok(()) => {
-            eprintln!(
-                "** [Honeybadger] Success ⚡ https://app.honeybadger.io/notice/{} id={}",
-                iddisp, iddisp
-            );
-        }
+        Ok(s) => s,
+    };
+    if let Err(e) = honeybadger_panic_hook_internal(panic_info, &id, &api_key) {
+        eprintln!("** [Honeybadger] Error report failed: {}, id={}", e, iddisp);
+        return;
     }
+    eprintln!(
+        "** [Honeybadger] Success ⚡ https://app.honeybadger.io/notice/{} id={}",
+        iddisp, iddisp
+    );
 }
 
 fn honeybadger_panic_hook_internal(
     panic_info: &PanicInfo,
     id: &Option<String>,
+    api_key: &str,
 ) -> Result<(), HoneybadgerError> {
-    let api_key = env::var("HONEYBADGER_API_KEY").map_err(|e| match e {
-        env::VarError::NotPresent => ReportUnable(format!("API key is missing")),
-        env::VarError::NotUnicode(_) => {
-            ReportUnable(format!("API key is an invalid Unicode string"))
-        }
-    })?;
     let message = if let Some(message) = panic_info.payload().downcast_ref::<String>() {
         message.to_string()
     } else if let Some(message) = panic_info.payload().downcast_ref::<&'static str>() {
@@ -208,7 +218,7 @@ fn honeybadger_panic_hook_internal(
     };
     let server_info = ServerInfo::generate();
     let mut payload = Payload {
-        api_key: api_key,
+        api_key: api_key.to_string(),
         notifier: notifier_info,
         error: error_info,
         request: None,
