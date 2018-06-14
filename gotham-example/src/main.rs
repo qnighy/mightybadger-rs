@@ -6,17 +6,17 @@ extern crate tokio;
 extern crate honeybadger;
 extern crate honeybadger_gotham;
 
-use std::time::{Duration, Instant};
-use hyper::{Response, StatusCode};
-use gotham::router::Router;
-use gotham::router::builder::*;
+use gotham::handler::HandlerFuture;
 use gotham::http::response::create_response;
-use gotham::state::State;
 use gotham::pipeline::new_pipeline;
 use gotham::pipeline::single::single_pipeline;
-use gotham::handler::HandlerFuture;
-use tokio::timer::Delay;
+use gotham::router::builder::*;
+use gotham::router::Router;
+use gotham::state::State;
+use hyper::{Response, StatusCode};
+use std::time::{Duration, Instant};
 use tokio::prelude::*;
+use tokio::timer::Delay;
 
 fn router() -> Router {
     let (chain, pipelines) = single_pipeline(

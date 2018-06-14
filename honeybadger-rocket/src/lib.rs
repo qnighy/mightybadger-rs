@@ -1,12 +1,12 @@
 extern crate honeybadger;
 extern crate rocket;
 
+use honeybadger::payload::{Payload, RequestInfo};
+use honeybadger::plugin::{Plugin, PluginError};
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::{Data, Request, Response};
 use std::cell::RefCell;
 use std::collections::HashMap;
-use honeybadger::payload::{Payload, RequestInfo};
-use honeybadger::plugin::{Plugin, PluginError};
 
 pub struct HoneybadgerHook {}
 

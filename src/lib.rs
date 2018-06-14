@@ -21,6 +21,8 @@ pub mod payload;
 pub mod plugin;
 
 use backtrace::Backtrace;
+use payload::*;
+use rand::Rng;
 use reqwest::header::{qitem, Accept, ContentType, UserAgent};
 use reqwest::{mime, StatusCode};
 use std::collections::BTreeMap;
@@ -29,9 +31,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::mem;
 use std::panic::{set_hook, take_hook, PanicInfo};
-use rand::Rng;
 use HoneybadgerError::*;
-use payload::*;
 
 pub use payload::Payload;
 pub use plugin::add_plugin;

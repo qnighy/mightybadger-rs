@@ -1,5 +1,5 @@
-use serde_json;
 use chrono::Utc;
+use serde_json;
 use std::collections::{BTreeMap, HashMap};
 
 /// Notification payload.

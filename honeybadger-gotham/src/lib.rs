@@ -8,12 +8,12 @@ extern crate scoped_tls;
 
 extern crate honeybadger;
 
-use std::collections::HashMap;
-use hyper::header::Headers;
+use futures::{Future, Poll};
+use gotham::handler::HandlerFuture;
 use gotham::middleware::Middleware;
 use gotham::state::{FromState, State};
-use gotham::handler::HandlerFuture;
-use futures::{Future, Poll};
+use hyper::header::Headers;
+use std::collections::HashMap;
 
 use honeybadger::payload::{Payload, RequestInfo};
 use honeybadger::plugin::{Plugin, PluginError};
