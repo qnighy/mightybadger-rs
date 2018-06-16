@@ -5,7 +5,10 @@ extern crate chrono;
 // extern crate lazy_static;
 #[macro_use]
 extern crate scoped_tls;
+
 extern crate rand;
+
+extern crate uuid;
 
 extern crate serde;
 #[macro_use]
@@ -36,6 +39,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::mem;
 use std::panic::{set_hook, take_hook, PanicInfo};
+use uuid::Uuid;
 use HoneybadgerError::*;
 
 pub use payload::Payload;
@@ -96,7 +100,9 @@ pub fn report(payload: &Payload) -> Result<(), HoneybadgerError> {
 
 fn honeybadger_panic_hook(panic_info: &PanicInfo) {
     let id = random_uuid();
-    let iddisp = id.as_ref().map(|x| x.as_str()).unwrap_or("nil");
+    let iddisp = id.as_ref()
+        .map(|u| u.to_string())
+        .unwrap_or_else(|| "nil".to_string());
     let api_key = match env::var("HONEYBADGER_API_KEY") {
         Err(env::VarError::NotPresent) => {
             eprintln!(
@@ -123,7 +129,7 @@ fn honeybadger_panic_hook(panic_info: &PanicInfo) {
 
 fn honeybadger_panic_hook_internal(
     panic_info: &PanicInfo,
-    id: &Option<String>,
+    id: &Option<Uuid>,
     api_key: &str,
 ) -> Result<(), HoneybadgerError> {
     let message = if let Some(message) = panic_info.payload().downcast_ref::<String>() {
@@ -218,20 +224,11 @@ pub fn install_hook() {
     });
 }
 
-fn random_uuid() -> Option<String> {
-    let mut rng = if let Ok(rng) = rand::os::OsRng::new() {
-        rng
-    } else {
-        return None;
-    };
-    let dw0 = rng.next_u64();
-    let dw1 = rng.next_u64();
-    Some(format!(
-        "{:08x}-{:04x}-{:04x}-{:04x}-{:012x}",
-        dw0 >> 32,
-        (dw0 >> 16) & 0xFFFF,
-        (dw0 & 0x0FFF) | 0x4000,
-        ((dw1 >> 48) & 0x3FFF) | 0x8000,
-        dw1 & 0xFFFFFFFFFFFF
-    ))
+fn random_uuid() -> Option<Uuid> {
+    let mut rng = rand::os::OsRng::new().ok()?;
+
+    let mut bytes = [0; 16];
+    rng.fill_bytes(&mut bytes);
+
+    Some(Uuid::from_random_bytes(bytes))
 }

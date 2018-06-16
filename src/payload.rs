@@ -1,6 +1,7 @@
 use chrono::Utc;
 use serde_json;
 use std::collections::{BTreeMap, HashMap};
+use uuid::Uuid;
 
 /// Notification payload.
 #[derive(Debug, Serialize, Default)]
@@ -23,7 +24,8 @@ pub struct NotifierInfo {
 
 #[derive(Debug, Serialize, Default)]
 pub struct ErrorInfo {
-    pub token: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub token: Option<Uuid>,
     pub class: String,
     pub message: String,
     pub tags: Vec<String>,
