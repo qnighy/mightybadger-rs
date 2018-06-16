@@ -14,3 +14,6 @@ license = "MIT"
 [dependencies]
 rocket = "0.3"
 honeybadger = { path = ".." }
+
+[dev-dependencies]
+rocket_codegen = "0.3"

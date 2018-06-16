@@ -17,3 +17,7 @@ hyper = "0.11"
 gotham = "0.2.1"
 gotham_derive = "0.2.1"
 honeybadger = { path = ".." }
+
+[dev-dependencies]
+mime = "0.3"
+tokio = "0.1.5"
