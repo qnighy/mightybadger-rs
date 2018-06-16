@@ -3,8 +3,6 @@ extern crate gotham;
 #[macro_use]
 extern crate gotham_derive;
 extern crate hyper;
-#[macro_use]
-extern crate scoped_tls;
 
 extern crate honeybadger;
 
@@ -15,13 +13,10 @@ use gotham::state::{FromState, State};
 use hyper::header::Headers;
 use std::collections::HashMap;
 
-use honeybadger::payload::{Payload, RequestInfo};
-use honeybadger::plugin::{Plugin, PluginError};
+use honeybadger::payload::RequestInfo;
 
 #[derive(Clone, NewMiddleware)]
 pub struct HoneybadgerMiddleware;
-
-scoped_thread_local!(static CURRENT_REQUEST: RequestInfo);
 
 struct WithRequestContext<F> {
     inner: F,
@@ -40,7 +35,7 @@ impl<F: Future> Future for WithRequestContext<F> {
 
     fn poll(&mut self) -> Poll<F::Item, F::Error> {
         let inner = &mut self.inner;
-        CURRENT_REQUEST.set(&self.context, || inner.poll())
+        honeybadger::context::with(&self.context, || inner.poll())
     }
 }
 
@@ -71,34 +66,8 @@ impl Middleware for HoneybadgerMiddleware {
                 ..Default::default()
             }
         };
-        let f = CURRENT_REQUEST.set(&request_info, || chain(state));
+        let f = honeybadger::context::with(&request_info, || chain(state));
         let f = WithRequestContext::new(f, request_info);
         Box::new(f)
-    }
-}
-
-pub fn install() {
-    use std::sync::Once;
-
-    static INSTALL_ONCE: Once = Once::new();
-
-    INSTALL_ONCE.call_once(|| {
-        honeybadger::install_hook();
-
-        honeybadger::add_plugin(GothamPlugin);
-    });
-}
-
-struct GothamPlugin;
-
-impl Plugin for GothamPlugin {
-    fn decorate(&self, payload: &mut Payload) -> Result<bool, PluginError> {
-        if !CURRENT_REQUEST.is_set() {
-            return Ok(false);
-        }
-        CURRENT_REQUEST.with(|current_request| {
-            payload.request = Some(current_request.clone());
-        });
-        Ok(true)
     }
 }

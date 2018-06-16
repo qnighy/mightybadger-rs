@@ -60,7 +60,6 @@ fn error_wait(_state: State) -> Box<HandlerFuture> {
 
 fn main() {
     honeybadger::install_hook();
-    honeybadger_gotham::install();
     let addr = "127.0.0.1:7878";
     gotham::start(addr, router())
 }

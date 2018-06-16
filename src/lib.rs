@@ -1,8 +1,10 @@
 //! Honeybadger notifier for Rust.
 
 extern crate chrono;
+// #[macro_use]
+// extern crate lazy_static;
 #[macro_use]
-extern crate lazy_static;
+extern crate scoped_tls;
 extern crate rand;
 
 extern crate serde;
@@ -20,8 +22,8 @@ extern crate reqwest;
 extern crate rustc_version_runtime;
 
 mod btparse;
+pub mod context;
 pub mod payload;
-pub mod plugin;
 
 use failure::Backtrace;
 use payload::*;
@@ -37,7 +39,6 @@ use std::panic::{set_hook, take_hook, PanicInfo};
 use HoneybadgerError::*;
 
 pub use payload::Payload;
-pub use plugin::add_plugin;
 
 /// Error occurred during Honeybadger reporting.
 #[derive(Debug, Fail)]
@@ -191,19 +192,14 @@ fn honeybadger_panic_hook_internal(
         causes: vec![],
     };
     let server_info = ServerInfo::generate();
-    let mut payload = Payload {
+    let request_info = context::get();
+    let payload = Payload {
         api_key: api_key.to_string(),
         notifier: notifier_info,
         error: error_info,
-        request: None,
+        request: request_info,
         server: server_info,
     };
-    match plugin::decorate_with_plugins(&mut payload) {
-        Err(plugin::PluginError::Other(msg)) => {
-            eprintln!("** [Honeybadger] Plugin error: {}", msg);
-        }
-        Ok(()) => {}
-    }
     report(&payload)?;
     Ok(())
 }

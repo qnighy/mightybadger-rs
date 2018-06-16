@@ -1,11 +1,9 @@
 extern crate honeybadger;
 extern crate rocket;
 
-use honeybadger::payload::{Payload, RequestInfo};
-use honeybadger::plugin::{Plugin, PluginError};
+use honeybadger::payload::RequestInfo;
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::{Data, Request, Response};
-use std::cell::RefCell;
 use std::collections::HashMap;
 
 pub struct HoneybadgerHook {}
@@ -14,17 +12,6 @@ impl HoneybadgerHook {
     pub fn new() -> Self {
         Self {}
     }
-}
-
-thread_local! {
-    static CURRENT_REQUEST: RefCell<Option<RequestInfo>> = RefCell::new(None);
-}
-
-fn try_get() -> Option<RequestInfo> {
-    CURRENT_REQUEST
-        .try_with(|current_request| current_request.try_borrow().ok().and_then(|x| x.clone()))
-        .ok()
-        .and_then(|x| x)
 }
 
 impl Fairing for HoneybadgerHook {
@@ -66,35 +53,10 @@ impl Fairing for HoneybadgerHook {
             cgi_data: cgi_data,
             ..Default::default()
         };
-        CURRENT_REQUEST.with(|current_request| {
-            *current_request.borrow_mut() = Some(request_info);
-        });
+        honeybadger::context::set(request_info);
     }
 
     fn on_response(&self, _request: &Request, _response: &mut Response) {
-        CURRENT_REQUEST.with(|current_request| {
-            *current_request.borrow_mut() = None;
-        });
-    }
-}
-
-pub fn install() {
-    use std::sync::Once;
-
-    static INSTALL_ONCE: Once = Once::new();
-
-    INSTALL_ONCE.call_once(|| {
-        honeybadger::install_hook();
-
-        honeybadger::add_plugin(RocketPlugin);
-    });
-}
-
-struct RocketPlugin;
-
-impl Plugin for RocketPlugin {
-    fn decorate(&self, payload: &mut Payload) -> Result<bool, PluginError> {
-        payload.request = try_get();
-        Ok(true)
+        honeybadger::context::unset();
     }
 }
