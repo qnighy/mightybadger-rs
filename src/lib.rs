@@ -17,7 +17,6 @@ extern crate failure;
 extern crate hyper;
 extern crate reqwest;
 
-extern crate backtrace;
 extern crate rustc_version_runtime;
 
 mod btparse;
