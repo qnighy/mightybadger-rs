@@ -209,9 +209,9 @@ fn honeybadger_panic_hook_internal(
 }
 
 pub fn install_hook() {
-    use std::sync::{Once, ONCE_INIT};
+    use std::sync::Once;
 
-    static INSTALL_ONCE: Once = ONCE_INIT;
+    static INSTALL_ONCE: Once = Once::new();
 
     INSTALL_ONCE.call_once(|| {
         let old_hook = take_hook();

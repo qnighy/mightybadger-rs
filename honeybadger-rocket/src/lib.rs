@@ -79,9 +79,9 @@ impl Fairing for HoneybadgerHook {
 }
 
 pub fn install() {
-    use std::sync::{Once, ONCE_INIT};
+    use std::sync::Once;
 
-    static INSTALL_ONCE: Once = ONCE_INIT;
+    static INSTALL_ONCE: Once = Once::new();
 
     INSTALL_ONCE.call_once(|| {
         honeybadger::install_hook();
