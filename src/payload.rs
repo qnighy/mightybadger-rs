@@ -34,8 +34,10 @@ pub struct ErrorInfo {
 
 #[derive(Debug, Serialize)]
 pub struct BacktraceEntry {
-    pub number: String,
-    pub file: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub number: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub file: Option<String>,
     pub method: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub source: Option<BTreeMap<u32, String>>,

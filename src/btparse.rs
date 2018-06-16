@@ -2,8 +2,8 @@ use failure::Backtrace;
 
 #[derive(Debug, Clone)]
 pub struct BacktraceLine {
-    pub line: u32,
-    pub file: String,
+    pub line: Option<u32>,
+    pub file: Option<String>,
     pub method: String,
 }
 
@@ -15,18 +15,15 @@ pub fn parse(bt: &Backtrace) -> Vec<BacktraceLine> {
     let mut bt_lines = Vec::new();
     macro_rules! flush {
         () => {
-            if last_method.is_some() || last_file.is_some() {
-                let method = last_method
-                    .take()
-                    .unwrap_or_else(|| "<unknown>".to_string());
-                let file = last_file
-                    .take()
-                    .unwrap_or_else(|| ("<unknown>".to_string(), 1));
-                bt_lines.push(BacktraceLine {
-                    line: file.1,
-                    file: file.0,
-                    method: method,
-                });
+            if let Some(method) = last_method.take() {
+                let (file, line) = if let Some((file, line)) = last_file.take() {
+                    (Some(file), Some(line))
+                } else {
+                    (None, None)
+                };
+                bt_lines.push(BacktraceLine { line, file, method });
+            } else {
+                last_file.take();
             }
         };
     };
@@ -154,10 +151,16 @@ mod tests {
             let bt_lines = parse(&bt);
             // eprintln!("bt_lines = {:#?}", bt_lines);
             assert!(bt_lines.iter().any(|bt_line| {
-                bt_line
+                let method_ok = bt_line
                     .method
-                    .starts_with("honeybadger::btparse::tests::test_backtrace::f::")
-                    && bt_line.file.ends_with("/btparse.rs") && bt_line.line == line
+                    .starts_with("honeybadger::btparse::tests::test_backtrace::f::");
+                let file_ok = bt_line
+                    .file
+                    .as_ref()
+                    .map(|file| file.ends_with("/btparse.rs"))
+                    .unwrap_or(false);
+                let line_ok = bt_line.line == Some(line);
+                method_ok && file_ok && line_ok
             }));
         }
         env::set_var("RUST_BACKTRACE", "1");

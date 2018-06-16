@@ -137,35 +137,38 @@ fn honeybadger_panic_hook_internal(
     let backtrace = bt_lines
         .into_iter()
         .map(|bt_line| {
-            let line = bt_line.line.saturating_sub(1);
-            let skip = line.saturating_sub(2);
-            let upto = line.saturating_add(3);
-
-            let source = if let Ok(file) = File::open(&bt_line.file) {
-                let mut source = BTreeMap::new();
-                let mut file = BufReader::new(file);
-                let mut line = String::new();
-                for lineno in 0..upto {
-                    line.clear();
-                    if let Ok(num_read) = file.read_line(&mut line) {
-                        if num_read == 0 {
+            let source = if let (Some(line), &Some(ref file)) = (bt_line.line, &bt_line.file) {
+                let line = line.saturating_sub(1);
+                let skip = line.saturating_sub(2);
+                let upto = line.saturating_add(3);
+                if let Ok(file) = File::open(&file) {
+                    let mut source = BTreeMap::new();
+                    let mut file = BufReader::new(file);
+                    let mut line = String::new();
+                    for lineno in 0..upto {
+                        line.clear();
+                        if let Ok(num_read) = file.read_line(&mut line) {
+                            if num_read == 0 {
+                                break;
+                            }
+                        } else {
                             break;
                         }
-                    } else {
-                        break;
+                        if lineno >= skip {
+                            let lineno = lineno.saturating_add(1);
+                            let line = mem::replace(&mut line, String::new());
+                            source.insert(lineno, line);
+                        }
                     }
-                    if lineno >= skip {
-                        let lineno = lineno.saturating_add(1);
-                        let line = mem::replace(&mut line, String::new());
-                        source.insert(lineno, line);
-                    }
+                    Some(source)
+                } else {
+                    None
                 }
-                Some(source)
             } else {
                 None
             };
             BacktraceEntry {
-                number: bt_line.line.to_string(),
+                number: bt_line.line.map(|line| line.to_string()),
                 file: bt_line.file,
                 method: bt_line.method,
                 source: source,
