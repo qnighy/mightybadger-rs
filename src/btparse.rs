@@ -119,6 +119,8 @@ pub fn trim_failure_backtrace(bt_lines: &mut Vec<BacktraceLine>) {
 pub fn trim_panic_backtrace(bt_lines: &mut Vec<BacktraceLine>) {
     let trim_paths = [
         "std::panicking::begin_panic::",
+        "core::panicking::panic::",
+        "core::panicking::panic_bounds_check::",
         "<core::option::Option<T>>::unwrap::",
         "<core::option::Option<T>>::expect::",
         "<core::result::Result<T, E>>::unwrap::",
