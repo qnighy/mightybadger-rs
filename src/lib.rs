@@ -23,7 +23,7 @@ extern crate rustc_version_runtime;
 pub mod payload;
 pub mod plugin;
 
-use backtrace::Backtrace;
+use failure::Backtrace;
 use payload::*;
 use rand::Rng;
 use reqwest::header::{qitem, Accept, ContentType, UserAgent};
@@ -43,17 +43,17 @@ pub use plugin::add_plugin;
 #[derive(Debug, Fail)]
 pub enum HoneybadgerError {
     #[fail(display = "could not assemble payload")]
-    CouldNotAssemblePayload(#[cause] serde_json::Error, failure::Backtrace),
+    CouldNotAssemblePayload(#[cause] serde_json::Error, Backtrace),
     #[fail(display = "HTTP request failed")]
-    HttpRequestFailed(#[cause] reqwest::Error, failure::Backtrace),
+    HttpRequestFailed(#[cause] reqwest::Error, Backtrace),
     #[fail(display = "project is sending too many errors")]
-    TooManyRequests(failure::Backtrace),
+    TooManyRequests(Backtrace),
     #[fail(display = "payment is required")]
-    PaymentRequired(failure::Backtrace),
+    PaymentRequired(Backtrace),
     #[fail(display = "API key is invalid")]
-    Forbidden(failure::Backtrace),
+    Forbidden(Backtrace),
     #[fail(display = "unknown response from server")]
-    UnknownResponse(failure::Backtrace),
+    UnknownResponse(Backtrace),
 }
 
 header! {
@@ -62,8 +62,8 @@ header! {
 
 pub fn report(payload: &Payload) -> Result<(), HoneybadgerError> {
     let api_key = payload.api_key.clone();
-    let payload = serde_json::to_string(payload)
-        .map_err(|e| CouldNotAssemblePayload(e, failure::Backtrace::new()))?;
+    let payload =
+        serde_json::to_string(payload).map_err(|e| CouldNotAssemblePayload(e, Backtrace::new()))?;
     // eprintln!("Payload = {}", payload);
     let client = reqwest::Client::new();
     let client_version = format!(
@@ -80,15 +80,15 @@ pub fn report(payload: &Payload) -> Result<(), HoneybadgerError> {
         .header(Accept(vec![qitem(mime::APPLICATION_JSON)]))
         .header(UserAgent::new(client_version))
         .send();
-    let resp = resp.map_err(|e| HttpRequestFailed(e, failure::Backtrace::new()))?;
+    let resp = resp.map_err(|e| HttpRequestFailed(e, Backtrace::new()))?;
     match resp.status() {
         StatusCode::TooManyRequests | StatusCode::ServiceUnavailable => {
-            return Err(TooManyRequests(failure::Backtrace::new()))
+            return Err(TooManyRequests(Backtrace::new()))
         }
-        StatusCode::PaymentRequired => return Err(PaymentRequired(failure::Backtrace::new())),
-        StatusCode::Forbidden => return Err(Forbidden(failure::Backtrace::new())),
+        StatusCode::PaymentRequired => return Err(PaymentRequired(Backtrace::new())),
+        StatusCode::Forbidden => return Err(Forbidden(Backtrace::new())),
         StatusCode::Created => {}
-        _ => return Err(UnknownResponse(failure::Backtrace::new())),
+        _ => return Err(UnknownResponse(Backtrace::new())),
     }
     Ok(())
 }
@@ -132,7 +132,7 @@ fn honeybadger_panic_hook_internal(
     } else {
         "Box<Any>".to_string()
     };
-    let mut backtrace = Backtrace::new()
+    let mut backtrace = backtrace::Backtrace::new()
         .frames()
         .iter()
         .filter_map(|frame| {
