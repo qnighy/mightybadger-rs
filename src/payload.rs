@@ -37,7 +37,8 @@ pub struct BacktraceEntry {
     pub number: String,
     pub file: String,
     pub method: String,
-    pub source: BTreeMap<u32, String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub source: Option<BTreeMap<u32, String>>,
 }
 
 #[derive(Debug, Serialize)]

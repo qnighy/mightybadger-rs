@@ -20,6 +20,7 @@ extern crate reqwest;
 extern crate backtrace;
 extern crate rustc_version_runtime;
 
+mod btparse;
 pub mod payload;
 pub mod plugin;
 
@@ -132,75 +133,46 @@ fn honeybadger_panic_hook_internal(
     } else {
         "Box<Any>".to_string()
     };
-    let mut backtrace = backtrace::Backtrace::new()
-        .frames()
-        .iter()
-        .filter_map(|frame| {
-            let symbol = if let Some(symbol) = frame.symbols().first() {
-                symbol
+    let mut bt_lines = btparse::parse(&Backtrace::new());
+    btparse::trim_panic_backtrace(&mut bt_lines);
+    let backtrace = bt_lines
+        .into_iter()
+        .map(|bt_line| {
+            let line = bt_line.line.saturating_sub(1);
+            let skip = line.saturating_sub(2);
+            let upto = line.saturating_add(3);
+
+            let source = if let Ok(file) = File::open(&bt_line.file) {
+                let mut source = BTreeMap::new();
+                let mut file = BufReader::new(file);
+                let mut line = String::new();
+                for lineno in 0..upto {
+                    line.clear();
+                    if let Ok(num_read) = file.read_line(&mut line) {
+                        if num_read == 0 {
+                            break;
+                        }
+                    } else {
+                        break;
+                    }
+                    if lineno >= skip {
+                        let lineno = lineno.saturating_add(1);
+                        let line = mem::replace(&mut line, String::new());
+                        source.insert(lineno, line);
+                    }
+                }
+                Some(source)
             } else {
-                return None;
+                None
             };
-            let number = if let Some(lineno) = symbol.lineno() {
-                lineno.to_string()
-            } else {
-                "".to_string()
-            };
-            let file = symbol
-                .filename()
-                .and_then(|filename| filename.to_str())
-                .unwrap_or("");
-            let method = symbol
-                .name()
-                .map(|name| name.to_string())
-                .unwrap_or_else(|| "".to_string());
-            Some(BacktraceEntry {
-                number: number,
-                file: file.to_string(),
-                method: method,
-                source: BTreeMap::new(),
-            })
+            BacktraceEntry {
+                number: bt_line.line.to_string(),
+                file: bt_line.file,
+                method: bt_line.method,
+                source: source,
+            }
         })
         .collect::<Vec<_>>();
-    let backtrace_trim_index = backtrace
-        .iter()
-        .position(|bt| bt.method.starts_with("std::panicking::begin_panic"))
-        .map(|x| x.saturating_add(1))
-        .unwrap_or(0);
-    backtrace.drain(..backtrace_trim_index);
-    for entry in &mut backtrace {
-        let number = if let Ok(number) = entry.number.parse::<u32>() {
-            number
-        } else {
-            continue;
-        };
-        let number = number.saturating_sub(1);
-        let skip = number.saturating_sub(2);
-        let upto = number.saturating_add(3);
-
-        let file = if let Ok(file) = File::open(&entry.file) {
-            file
-        } else {
-            continue;
-        };
-        let mut file = BufReader::new(file);
-        let mut line = String::new();
-        for lineno in 0..upto {
-            line.clear();
-            if let Ok(num_read) = file.read_line(&mut line) {
-                if num_read == 0 {
-                    break;
-                }
-            } else {
-                break;
-            }
-            if lineno >= skip {
-                let lineno = lineno.saturating_add(1);
-                let line = mem::replace(&mut line, String::new());
-                entry.source.insert(lineno, line);
-            }
-        }
-    }
     let notifier_info = Some(NotifierInfo {
         name: "honeybadger-rust",
         url: "https://github.com/qnighy/honeybadger-rs",
