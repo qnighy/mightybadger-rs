@@ -235,6 +235,17 @@ pub fn install_hook() {
     });
 }
 
+pub fn enable_backtrace() {
+    use std::env;
+
+    env::set_var("RUST_FAILURE_BACKTRACE", "1");
+}
+
+pub fn setup() {
+    install_hook();
+    enable_backtrace();
+}
+
 fn random_uuid() -> Option<Uuid> {
     let mut rng = rand::os::OsRng::new().ok()?;
 
