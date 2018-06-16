@@ -59,13 +59,20 @@ pub enum HoneybadgerError {
     Forbidden(Backtrace),
     #[fail(display = "unknown response from server")]
     UnknownResponse(Backtrace),
+    #[fail(display = "failed to decode response body")]
+    ResponseDecodeFailed(#[cause] reqwest::Error, Backtrace),
 }
 
 header! {
     (XApiKey, "X-API-Key") => [String]
 }
 
-pub fn report(payload: &Payload) -> Result<(), HoneybadgerError> {
+#[derive(Deserialize)]
+struct HoneybadgerResponse {
+    id: Uuid,
+}
+
+fn report(payload: &Payload) -> Result<HoneybadgerResponse, HoneybadgerError> {
     let api_key = payload.api_key.clone();
     let payload =
         serde_json::to_string(payload).map_err(|e| CouldNotAssemblePayload(e, Backtrace::new()))?;
@@ -85,7 +92,7 @@ pub fn report(payload: &Payload) -> Result<(), HoneybadgerError> {
         .header(Accept(vec![qitem(mime::APPLICATION_JSON)]))
         .header(UserAgent::new(client_version))
         .send();
-    let resp = resp.map_err(|e| HttpRequestFailed(e, Backtrace::new()))?;
+    let mut resp = resp.map_err(|e| HttpRequestFailed(e, Backtrace::new()))?;
     match resp.status() {
         StatusCode::TooManyRequests | StatusCode::ServiceUnavailable => {
             return Err(TooManyRequests(Backtrace::new()))
@@ -95,7 +102,8 @@ pub fn report(payload: &Payload) -> Result<(), HoneybadgerError> {
         StatusCode::Created => {}
         _ => return Err(UnknownResponse(Backtrace::new())),
     }
-    Ok(())
+    resp.json()
+        .map_err(|e| ResponseDecodeFailed(e, Backtrace::new()))
 }
 
 fn honeybadger_panic_hook(panic_info: &PanicInfo) {
@@ -117,13 +125,17 @@ fn honeybadger_panic_hook(panic_info: &PanicInfo) {
         }
         Ok(s) => s,
     };
-    if let Err(e) = honeybadger_panic_hook_internal(panic_info, &id, &api_key) {
-        eprintln!("** [Honeybadger] Error report failed: {}, id={}", e, iddisp);
-        return;
-    }
+    let resp = match honeybadger_panic_hook_internal(panic_info, &id, &api_key) {
+        Err(e) => {
+            eprintln!("** [Honeybadger] Error report failed: {}, id={}", e, iddisp);
+            return;
+        }
+        Ok(resp) => resp,
+    };
+    let id = resp.id;
     eprintln!(
         "** [Honeybadger] Success ⚡ https://app.honeybadger.io/notice/{} id={}",
-        iddisp, iddisp
+        id, id
     );
 }
 
@@ -131,7 +143,7 @@ fn honeybadger_panic_hook_internal(
     panic_info: &PanicInfo,
     id: &Option<Uuid>,
     api_key: &str,
-) -> Result<(), HoneybadgerError> {
+) -> Result<HoneybadgerResponse, HoneybadgerError> {
     let message = if let Some(message) = panic_info.payload().downcast_ref::<String>() {
         message.to_string()
     } else if let Some(message) = panic_info.payload().downcast_ref::<&'static str>() {
@@ -206,8 +218,7 @@ fn honeybadger_panic_hook_internal(
         request: request_info,
         server: server_info,
     };
-    report(&payload)?;
-    Ok(())
+    report(&payload)
 }
 
 pub fn install_hook() {
