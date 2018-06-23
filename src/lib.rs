@@ -165,11 +165,11 @@ fn notify_internal(
     id: &Option<Uuid>,
     api_key: &str,
 ) -> Result<HoneybadgerResponse, HoneybadgerError> {
-    let backtrace = error.backtrace().map(|bt| {
-        let mut bt_lines = btparse::parse(bt);
-        btparse::trim_backtrace(&mut bt_lines);
-        btparse::decorate(bt_lines)
-    });
+    let backtrace = if let Some(bt) = error.backtrace() {
+        btparse::parse_and_decorate(bt)
+    } else {
+        btparse::parse_and_decorate(&Backtrace::new())
+    };
     let notifier_info = Some(NotifierInfo {
         name: "honeybadger-rust",
         url: "https://github.com/qnighy/honeybadger-rs",
@@ -182,7 +182,7 @@ fn notify_internal(
         message: error.to_string(),
         tags: vec![],
         fingerprint: "".to_string(),
-        backtrace: backtrace,
+        backtrace: Some(backtrace),
         causes: vec![],
     };
     let server_info = ServerInfo::generate();

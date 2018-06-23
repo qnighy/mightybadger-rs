@@ -103,6 +103,7 @@ pub fn parse(bt: &Backtrace) -> Vec<BacktraceLine> {
 
 pub fn trim_backtrace(bt_lines: &mut Vec<BacktraceLine>) {
     let trim_paths = [
+        "honeybadger::notify::",
         "backtrace::backtrace::capture::Backtrace::new::",
         "backtrace::backtrace::capture::Backtrace::new_unresolved::",
         "failure::backtrace::Backtrace::new::",
@@ -174,6 +175,12 @@ pub fn decorate(bt_lines: Vec<BacktraceLine>) -> Vec<BacktraceEntry> {
             }
         })
         .collect::<Vec<_>>()
+}
+
+pub fn parse_and_decorate(bt: &Backtrace) -> Vec<BacktraceEntry> {
+    let mut bt_lines = parse(bt);
+    trim_backtrace(&mut bt_lines);
+    decorate(bt_lines)
 }
 
 #[cfg(test)]
