@@ -50,7 +50,8 @@ pub struct BacktraceEntry {
 pub struct ErrorCause {
     pub class: String,
     pub message: String,
-    pub backtrace: Vec<BacktraceEntry>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub backtrace: Option<Vec<BacktraceEntry>>,
 }
 
 #[derive(Debug, Clone, Serialize, Default)]
