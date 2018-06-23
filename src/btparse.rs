@@ -101,7 +101,7 @@ pub fn parse(bt: &Backtrace) -> Vec<BacktraceLine> {
     bt_lines
 }
 
-pub fn trim_failure_backtrace(bt_lines: &mut Vec<BacktraceLine>) {
+pub fn trim_backtrace(bt_lines: &mut Vec<BacktraceLine>) {
     let trim_paths = [
         "backtrace::backtrace::capture::Backtrace::new::",
         "backtrace::backtrace::capture::Backtrace::new_unresolved::",
@@ -109,22 +109,6 @@ pub fn trim_failure_backtrace(bt_lines: &mut Vec<BacktraceLine>) {
         "<failure::backtrace::Backtrace as core::default::Default>::default::",
         "failure::failure::error_message::err_msg::",
         "<failure::context::Context<D>>::new::",
-    ];
-    let pos = bt_lines
-        .iter()
-        .rposition(|bt_line| {
-            trim_paths
-                .iter()
-                .any(|trim_path| bt_line.method.starts_with(trim_path))
-        })
-        .map(|x| x + 1)
-        .unwrap_or(0);
-
-    bt_lines.drain(..pos);
-}
-
-pub fn trim_panic_backtrace(bt_lines: &mut Vec<BacktraceLine>) {
-    let trim_paths = [
         "std::panicking::begin_panic::",
         "core::panicking::panic::",
         "core::panicking::panic_bounds_check::",

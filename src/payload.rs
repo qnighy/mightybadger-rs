@@ -30,7 +30,8 @@ pub struct ErrorInfo {
     pub message: String,
     pub tags: Vec<String>,
     pub fingerprint: String,
-    pub backtrace: Vec<BacktraceEntry>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub backtrace: Option<Vec<BacktraceEntry>>,
     pub causes: Vec<ErrorCause>,
 }
 

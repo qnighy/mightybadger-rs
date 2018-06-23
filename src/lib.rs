@@ -28,7 +28,7 @@ mod btparse;
 pub mod context;
 pub mod payload;
 
-use failure::Backtrace;
+use failure::{Backtrace, Fail};
 use payload::*;
 use rand::Rng;
 use reqwest::header::{qitem, Accept, ContentType, UserAgent};
@@ -39,6 +39,27 @@ use uuid::Uuid;
 use HoneybadgerError::*;
 
 pub use payload::Payload;
+
+#[derive(Debug, Fail)]
+#[fail(display = "{}", message)]
+pub struct Panic {
+    message: String,
+    backtrace: Backtrace,
+}
+
+impl Panic {
+    fn new(panic_info: &PanicInfo) -> Self {
+        let message = if let Some(message) = panic_info.payload().downcast_ref::<String>() {
+            message.to_string()
+        } else if let Some(&message) = panic_info.payload().downcast_ref::<&'static str>() {
+            message.to_string()
+        } else {
+            "Box<Any>".to_string()
+        };
+        let backtrace = Backtrace::new();
+        Panic { message, backtrace }
+    }
+}
 
 /// Error occurred during Honeybadger reporting.
 #[derive(Debug, Fail)]
@@ -103,6 +124,10 @@ fn report(payload: &Payload) -> Result<HoneybadgerResponse, HoneybadgerError> {
 }
 
 fn honeybadger_panic_hook(panic_info: &PanicInfo) {
+    notify(&Panic::new(panic_info));
+}
+
+pub fn notify(error: &Fail) {
     let id = random_uuid();
     let iddisp = id.as_ref()
         .map(|u| u.to_string())
@@ -121,7 +146,7 @@ fn honeybadger_panic_hook(panic_info: &PanicInfo) {
         }
         Ok(s) => s,
     };
-    let resp = match honeybadger_panic_hook_internal(panic_info, &id, &api_key) {
+    let resp = match notify_internal(error, &id, &api_key) {
         Err(e) => {
             eprintln!("** [Honeybadger] Error report failed: {}, id={}", e, iddisp);
             return;
@@ -135,21 +160,16 @@ fn honeybadger_panic_hook(panic_info: &PanicInfo) {
     );
 }
 
-fn honeybadger_panic_hook_internal(
-    panic_info: &PanicInfo,
+fn notify_internal(
+    error: &Fail,
     id: &Option<Uuid>,
     api_key: &str,
 ) -> Result<HoneybadgerResponse, HoneybadgerError> {
-    let message = if let Some(message) = panic_info.payload().downcast_ref::<String>() {
-        message.to_string()
-    } else if let Some(message) = panic_info.payload().downcast_ref::<&'static str>() {
-        message.to_string()
-    } else {
-        "Box<Any>".to_string()
-    };
-    let mut bt_lines = btparse::parse(&Backtrace::new());
-    btparse::trim_panic_backtrace(&mut bt_lines);
-    let backtrace = btparse::decorate(bt_lines);
+    let backtrace = error.backtrace().map(|bt| {
+        let mut bt_lines = btparse::parse(bt);
+        btparse::trim_backtrace(&mut bt_lines);
+        btparse::decorate(bt_lines)
+    });
     let notifier_info = Some(NotifierInfo {
         name: "honeybadger-rust",
         url: "https://github.com/qnighy/honeybadger-rs",
@@ -159,7 +179,7 @@ fn honeybadger_panic_hook_internal(
     let error_info = ErrorInfo {
         token: id.clone(),
         class: "std::panic".to_string(),
-        message: message,
+        message: error.to_string(),
         tags: vec![],
         fingerprint: "".to_string(),
         backtrace: backtrace,
