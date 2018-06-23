@@ -178,7 +178,7 @@ fn notify_internal(
     });
     let error_info = ErrorInfo {
         token: id.clone(),
-        class: "std::panic".to_string(),
+        class: error_class(error),
         message: error.to_string(),
         tags: vec![],
         fingerprint: "".to_string(),
@@ -195,6 +195,62 @@ fn notify_internal(
         server: server_info,
     };
     report(&payload)
+}
+
+fn error_class(error: &Fail) -> String {
+    macro_rules! error_classes {
+        ($($class:ty,)*) => {
+            $(
+                if Fail::downcast_ref::<$class>(error).is_some() {
+                    return stringify!($class).to_string();
+                }
+                if Fail::downcast_ref::<failure::Context<$class>>(error).is_some() {
+                    return stringify!(failure::Context<$class>).to_string();
+                }
+            )*
+        };
+    }
+    error_classes!(
+        // std::boxed::Box<T>,
+        std::cell::BorrowError,
+        std::cell::BorrowMutError,
+        // std::char::CharTryFromError,
+        std::char::DecodeUtf16Error,
+        std::char::ParseCharError,
+        std::env::JoinPathsError,
+        std::env::VarError,
+        std::ffi::FromBytesWithNulError,
+        std::ffi::IntoStringError,
+        std::ffi::NulError,
+        std::fmt::Error,
+        // std::io::CharsError,
+        std::io::Error,
+        // std::io::IntoInnerError<W>,
+        std::net::AddrParseError,
+        std::num::ParseFloatError,
+        std::num::ParseIntError,
+        // std::num::TryFromIntError,
+        std::path::StripPrefixError,
+        std::str::ParseBoolError,
+        std::str::Utf8Error,
+        std::string::FromUtf16Error,
+        std::string::FromUtf8Error,
+        std::string::ParseError,
+        // std::sync::PoisonError<T>,
+        // std::sync::TryLockError<T>,
+        std::sync::mpsc::RecvError,
+        std::sync::mpsc::RecvTimeoutError,
+        // std::sync::mpsc::SendError<T>,
+        std::sync::mpsc::TryRecvError,
+        // std::sync::mpsc::TrySendError<T>,
+        std::time::SystemTimeError,
+        honeybadger::Panic,
+    );
+    // hack for stringify
+    mod honeybadger {
+        pub use Panic;
+    }
+    return "Fail".to_string();
 }
 
 pub fn install_hook() {
