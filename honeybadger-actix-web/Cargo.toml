@@ -1,0 +1,9 @@
+[package]
+name = "honeybadger-actix-web"
+version = "0.1.0"
+authors = ["Masaki Hara <ackie.h.gmai@gmail.com>"]
+
+[dependencies]
+actix-web = "0.6.14"
+honeybadger = { path = ".." }
+failure = "0.1.1"
