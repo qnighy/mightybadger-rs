@@ -1,6 +1,8 @@
+use std::collections::{BTreeMap, HashMap};
+use std::process;
+
 use chrono::Utc;
 use serde_json;
-use std::collections::{BTreeMap, HashMap};
 use uuid::Uuid;
 
 /// Notification payload.
@@ -80,7 +82,7 @@ pub struct ServerInfo {
 impl ServerInfo {
     pub fn generate() -> Self {
         let time = Utc::now().format("%Y-%m-%d %H:%M:%S %Z").to_string();
-        let pid = 0; // TODO: wait for stabilization of std::process::id();
+        let pid = process::id();
         ServerInfo {
             time: time,
             pid: pid,
