@@ -5,6 +5,8 @@ use chrono::Utc;
 use serde_json;
 use uuid::Uuid;
 
+use stats;
+
 /// Notification payload.
 #[derive(Debug, Serialize, Default)]
 pub struct Payload {
@@ -83,9 +85,11 @@ impl ServerInfo {
     pub fn generate() -> Self {
         let time = Utc::now().format("%Y-%m-%d %H:%M:%S %Z").to_string();
         let pid = process::id();
+        let stats = Stats::generate();
         ServerInfo {
             time: time,
             pid: pid,
+            stats: stats,
             ..Default::default()
         }
     }
@@ -93,22 +97,28 @@ impl ServerInfo {
 
 #[derive(Debug, Serialize, Default)]
 pub struct Stats {
-    pub mem: MemoryInfo,
-    pub load: LoadInfo,
+    pub mem: Option<MemoryInfo>,
+    pub load: Option<LoadInfo>,
+}
+
+impl Stats {
+    pub fn generate() -> Self {
+        stats::get_stats()
+    }
 }
 
 #[derive(Debug, Serialize, Default)]
 pub struct MemoryInfo {
-    pub total: f64,
-    pub free: f64,
-    pub buffers: f64,
-    pub cached: f64,
-    pub free_total: f64,
+    pub total: Option<f64>,
+    pub free: Option<f64>,
+    pub buffers: Option<f64>,
+    pub cached: Option<f64>,
+    pub free_total: Option<f64>,
 }
 
 #[derive(Debug, Serialize, Default)]
 pub struct LoadInfo {
-    pub one: f64,
-    pub five: f64,
-    pub fifteen: f64,
+    pub one: Option<f64>,
+    pub five: Option<f64>,
+    pub fifteen: Option<f64>,
 }

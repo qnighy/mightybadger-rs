@@ -27,6 +27,7 @@ extern crate rustc_version_runtime;
 mod btparse;
 pub mod context;
 pub mod payload;
+mod stats;
 
 use failure::{Backtrace, Fail};
 use payload::*;
