@@ -1,8 +1,8 @@
 //! Honeybadger notifier for Rust.
 
 extern crate chrono;
-// #[macro_use]
-// extern crate lazy_static;
+#[macro_use]
+extern crate lazy_static;
 #[macro_use]
 extern crate scoped_tls;
 
@@ -25,6 +25,7 @@ extern crate reqwest;
 extern crate rustc_version_runtime;
 
 mod btparse;
+mod config;
 pub mod context;
 pub mod payload;
 mod stats;
@@ -39,6 +40,8 @@ use std::panic::{set_hook, take_hook, PanicInfo};
 use uuid::Uuid;
 use HoneybadgerError::*;
 
+pub use config::configure;
+pub use config::configure_from_env;
 pub use payload::Payload;
 
 #[derive(Debug, Fail)]
@@ -289,6 +292,7 @@ pub fn enable_backtrace() {
 }
 
 pub fn setup() {
+    configure_from_env();
     install_hook();
     enable_backtrace();
 }
