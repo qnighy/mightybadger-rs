@@ -35,7 +35,6 @@ use payload::*;
 use rand::Rng;
 use reqwest::header::{qitem, Accept, ContentType, UserAgent};
 use reqwest::{mime, StatusCode};
-use std::env;
 use std::panic::{set_hook, take_hook, PanicInfo};
 use uuid::Uuid;
 use HoneybadgerError::*;
@@ -68,6 +67,10 @@ impl Panic {
 /// Error occurred during Honeybadger reporting.
 #[derive(Debug, Fail)]
 pub enum HoneybadgerError {
+    #[fail(display = "Configured not to send reports")]
+    NoReportData(Backtrace),
+    #[fail(display = "API key is missing")]
+    NoApiKey(Backtrace),
     #[fail(display = "could not assemble payload")]
     CouldNotAssemblePayload(#[cause] serde_json::Error, Backtrace),
     #[fail(display = "HTTP request failed")]
@@ -136,21 +139,14 @@ pub fn notify(error: &Fail) {
     let iddisp = id.as_ref()
         .map(|u| u.to_string())
         .unwrap_or_else(|| "nil".to_string());
-    let api_key = match env::var("HONEYBADGER_API_KEY") {
-        Err(env::VarError::NotPresent) => {
+    let resp = match notify_internal(error, &id) {
+        Err(NoReportData(_)) => {
             eprintln!(
-                "** [Honeybadger] Unable to send error report: API key is missing, id={}",
+                "** [Honeybadger] Configured not to send reports, id={}",
                 iddisp
             );
             return;
         }
-        Err(env::VarError::NotUnicode(_)) => {
-            eprintln!("** [Honeybadger] Unable to send error report: API key is an invalid Unicode string, id={}", iddisp);
-            return;
-        }
-        Ok(s) => s,
-    };
-    let resp = match notify_internal(error, &id, &api_key) {
         Err(e) => {
             eprintln!("** [Honeybadger] Error report failed: {}, id={}", e, iddisp);
             return;
@@ -167,8 +163,21 @@ pub fn notify(error: &Fail) {
 fn notify_internal(
     error: &Fail,
     id: &Option<Uuid>,
-    api_key: &str,
 ) -> Result<HoneybadgerResponse, HoneybadgerError> {
+    let config = config::read_config();
+    let report_data = config.report_data.unwrap_or_else(|| {
+        let env = config.env.as_ref().map(|s| s.as_str()).unwrap_or("");
+        ["test", "development", "cucumber"]
+            .iter()
+            .all(|&s| env != s)
+    });
+    if !report_data {
+        return Err(NoReportData(Backtrace::new()));
+    }
+    let api_key = config
+        .api_key
+        .clone()
+        .ok_or_else(|| NoApiKey(Backtrace::new()))?;
     let backtrace = if let Some(bt) = error.backtrace() {
         btparse::parse_and_decorate(bt)
     } else {
@@ -206,7 +215,7 @@ fn notify_internal(
     let server_info = ServerInfo::generate();
     let request_info = context::get();
     let payload = Payload {
-        api_key: api_key.to_string(),
+        api_key: api_key,
         notifier: notifier_info,
         error: error_info,
         request: request_info,

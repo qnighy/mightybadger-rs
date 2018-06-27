@@ -5,6 +5,7 @@ use chrono::Utc;
 use serde_json;
 use uuid::Uuid;
 
+use config;
 use stats;
 
 /// Notification payload.
@@ -72,10 +73,14 @@ pub struct RequestInfo {
 
 #[derive(Debug, Serialize, Default)]
 pub struct ServerInfo {
-    pub project_root: String,
-    pub revision: String,
-    pub environment_name: String,
-    pub hostname: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub project_root: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub revision: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub environment_name: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hostname: Option<String>,
     pub stats: Stats,
     pub time: String,
     pub pid: u32,
@@ -83,10 +88,15 @@ pub struct ServerInfo {
 
 impl ServerInfo {
     pub fn generate() -> Self {
+        let config = config::read_config();
         let time = Utc::now().format("%Y-%m-%d %H:%M:%S %Z").to_string();
         let pid = process::id();
         let stats = Stats::generate();
         ServerInfo {
+            project_root: config.root.clone(),
+            revision: config.revision.clone(),
+            environment_name: config.env.clone(),
+            hostname: config.hostname.clone(),
             time: time,
             pid: pid,
             stats: stats,
