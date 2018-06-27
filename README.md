@@ -6,15 +6,11 @@
 
 In addition to standalone configuration, it provides middlewares for [Rocket](https://rocket.rs/), [Gotham](https://gotham.rs/), and [Actix Web](https://actix.rs/).
 
-## Configuration
-
-Currently, it only supports API key via the `HONEYBADGER_API_KEY` environment variable.
-
 ## Standalone
 
 ```toml
 [dependencies]
-honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "fb1d25c" }
+honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "5139f5c" }
 ```
 
 ```rust
@@ -42,8 +38,8 @@ HONEYBADGER_API_KEY=your_own_api_key cargo run
 
 ```toml
 [dependencies]
-honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "fb1d25c" }
-honeybadger-rocket = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "fb1d25c" }
+honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "5139f5c" }
+honeybadger-rocket = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "5139f5c" }
 ```
 
 ```rust
@@ -65,8 +61,8 @@ fn main() {
 
 ```toml
 [dependencies]
-honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "fb1d25c" }
-honeybadger-gotham = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "fb1d25c" }
+honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "5139f5c" }
+honeybadger-gotham = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "5139f5c" }
 ```
 
 ```rust
@@ -97,8 +93,8 @@ fn main() {
 
 ```toml
 [dependencies]
-honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "fb1d25c" }
-honeybadger-actix-web = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "fb1d25c" }
+honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "5139f5c" }
+honeybadger-actix-web = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "5139f5c" }
 ```
 
 ```rust
@@ -117,6 +113,31 @@ fn main() {
     }).bind(..)
         .unwrap()
         .run();
+}
+```
+
+## Configuration
+
+It automatically reads the following environment variables at `honeybadger::setup()`:
+
+- `HONEYBADGER_API_KEY`
+- `HONEYBADGER_ENV`
+- `HONEYBADGER_REPORT_DATA`
+- `HONEYBADGER_ROOT`
+- `HONEYBADGER_REVISION`
+- `HONEYBADGER_HOSTNAME`
+
+Moreover, you can programmatically configure Honeybadger as follows:
+
+```rust
+fn main() {
+    honeybadger::configure(|config| {
+        // Force update API key
+        config.set_api_key(Some("foobar".to_string()));
+        // Update API key, if it doesn't exist
+        config.opt_set_api_key(Some("foobar".to_string()));
+        // The same applies for `env`, `report_data`, `root`, `revision`, and `hostname`.
+    });
 }
 ```
 
@@ -168,9 +189,9 @@ fn main() {
   - [ ] Nickel
   - [ ] Rouille
 - [ ] Password filtering
-- [ ] Global configuration via environment variables
+- [x] Global configuration via environment variables
 - [ ] Global configuration via YAML
-- [ ] Global configuration via Rust functions
+- [x] Global configuration via Rust functions
 - [ ] Travis
 - [ ] Docs
 - [ ] Rust API stabilization
