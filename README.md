@@ -188,7 +188,7 @@ fn main() {
   - [ ] Iron
   - [ ] Nickel
   - [ ] Rouille
-- [ ] Password filtering
+- [x] Password filtering
 - [x] Global configuration via environment variables
 - [ ] Global configuration via YAML
 - [x] Global configuration via Rust functions

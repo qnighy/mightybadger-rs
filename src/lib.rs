@@ -214,13 +214,14 @@ fn notify_internal(
     };
     let server_info = ServerInfo::generate();
     let request_info = context::get();
-    let payload = Payload {
+    let mut payload = Payload {
         api_key: api_key,
         notifier: notifier_info,
         error: error_info,
         request: request_info,
         server: server_info,
     };
+    payload.sanitize();
     report(&payload)
 }
 

@@ -9,8 +9,28 @@ pub struct Config {
     pub root: Option<String>,
     pub revision: Option<String>,
     pub hostname: Option<String>,
+    pub request: RequestConfig,
     #[doc(hidden)]
     pub _non_exhaustive: (),
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct RequestConfig {
+    pub filter_keys: Option<Vec<String>>,
+    #[doc(hidden)]
+    pub _non_exhaustive: (),
+}
+
+impl RequestConfig {
+    pub(crate) fn filter_key(&self, key: &str) -> bool {
+        if let Some(ref filter_keys) = self.filter_keys {
+            filter_keys.iter().any(|s| key.contains(s))
+        } else {
+            ["password", "HTTP_AUTHORIZATION"]
+                .iter()
+                .any(|s| key.contains(s))
+        }
+    }
 }
 
 lazy_static! {
@@ -34,6 +54,17 @@ pub fn configure_from_env() {
         }
     }
 
+    fn set_string_array(entry: &mut Option<Vec<String>>, env_name: &str) {
+        if entry.is_none() {
+            *entry = env::var_os(env_name).map(|s| {
+                let s = s.to_string_lossy().to_string();
+                s.split(",")
+                    .map(|s| s.trim().to_string())
+                    .collect::<Vec<_>>()
+            });
+        }
+    }
+
     configure(|config| {
         set_string(&mut config.api_key, "HONEYBADGER_API_KEY");
         set_string(&mut config.env, "HONEYBADGER_ENV");
@@ -41,6 +72,10 @@ pub fn configure_from_env() {
         set_string(&mut config.root, "HONEYBADGER_ROOT");
         set_string(&mut config.revision, "HONEYBADGER_REVISION");
         set_string(&mut config.hostname, "HONEYBADGER_HOSTNAME");
+        set_string_array(
+            &mut config.request.filter_keys,
+            "HONEYBADGER_REQUEST_FILTER_KEYS",
+        );
     })
 }
 

@@ -18,6 +18,12 @@ pub struct Payload {
     pub server: ServerInfo,
 }
 
+impl Payload {
+    pub(crate) fn sanitize(&mut self) {
+        self.request.as_mut().map(|req| req.sanitize());
+    }
+}
+
 /// Information of the app that caused the error.
 #[derive(Debug, Serialize, Clone)]
 pub struct NotifierInfo {
@@ -69,6 +75,32 @@ pub struct RequestInfo {
     pub session: HashMap<String, String>,
     pub context: HashMap<String, serde_json::Value>,
     pub local_variables: HashMap<String, serde_json::Value>,
+}
+
+impl RequestInfo {
+    pub(crate) fn sanitize(&mut self) {
+        let config = config::read_config();
+        for (k, v) in self.cgi_data.iter_mut() {
+            if config.request.filter_key(k) {
+                *v = "[FILTERED]".to_string();
+            }
+        }
+        for (k, v) in self.params.iter_mut() {
+            if config.request.filter_key(k) {
+                *v = "[FILTERED]".to_string();
+            }
+        }
+        for (k, v) in self.session.iter_mut() {
+            if config.request.filter_key(k) {
+                *v = "[FILTERED]".to_string();
+            }
+        }
+        for (k, v) in self.context.iter_mut() {
+            if config.request.filter_key(k) {
+                *v = serde_json::Value::String("[FILTERED]".to_string());
+            }
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Default)]
