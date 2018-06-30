@@ -6,17 +6,12 @@ rust:
   - stable
   - beta
   - nightly
-env:
-  - "MINVER=false"
-  - "MINVER=true"
 matrix:
   allow_failures:
     - rust: nightly
   fast_finish: true
-  exclude:
-    - rust: beta
-      env: "MINVER=true"
-    - rust: nightly
+  include:
+    - rust: stable
       env: "MINVER=true"
 install:
   - rustup component add rustfmt-preview

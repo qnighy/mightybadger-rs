@@ -15,7 +15,7 @@ for package in "${PACKAGES[@]}"; do
     package_dir="$package"
   fi
 
-  if [[ $MINVER = true ]]; then
+  if [[ ${MINVER:-false} = true ]]; then
     sed -e '/^\[dependencies\]$/,/^[.*]$/s/"\([0-9]\)/"=\1/g' -i.bak $package_dir/Cargo.toml
   else
     cp $package_dir/Cargo.toml $package_dir/Cargo.toml.bak
