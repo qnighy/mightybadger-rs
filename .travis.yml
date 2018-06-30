@@ -3,8 +3,8 @@ dist: trusty
 language: rust
 cache: cargo
 rust:
-  - "1.26.2"
-  - "1.27.0"
+  - stable
+  - beta
   - nightly
 env:
   - MINVER=0
@@ -14,7 +14,7 @@ matrix:
     - rust: nightly
   fast_finish: true
   exclude:
-    - rust: "1.26.2"
+    - rust: beta
       env: MINVER=1
     - rust: nightly
       env: MINVER=1
@@ -28,4 +28,4 @@ script:
   - cargo build -p honeybadger-actix-web --examples --verbose
   - cargo build -p honeybadger-gotham --examples --verbose
   - 'if [[ $TRAVIS_RUST_VERSION = nightly ]]; then cargo build -p honeybadger-rocket --examples --verbose; fi'
-  - 'if [[ $TRAVIS_RUST_VERSION = "1.27.0" ]]; then cargo fmt --all -- --write-mode check; fi'
+  - 'if [[ $TRAVIS_RUST_VERSION = stable ]]; then cargo fmt --all -- --write-mode check; fi'
