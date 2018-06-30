@@ -1,0 +1,28 @@
+sudo: false
+dist: trusty
+language: rust
+cache: cargo
+rust:
+  - "1.26.2"
+  - "1.27.0"
+  - nightly
+env:
+  - MINVER=0
+  - MINVER=1
+matrix:
+  allow_failures:
+    - rust: nightly
+  fast_finish: true
+  exclude:
+    - rust: "1.26.2"
+      env: MINVER=1
+    - rust: nightly
+      env: MINVER=1
+install:
+  - 'if [[ $MINVER = 1 ]]; then .travis/fix-ver.sh; fi'
+  - cargo fetch
+script:
+  - cargo build --examples --verbose
+  - cargo build -p honeybadger-actix-web --examples --verbose
+  - cargo build -p honeybadger-gotham --examples --verbose
+  - 'if [[ $TRAVIS_RUST_VERSION = nightly ]]; then cargo build -p honeybadger-rocket --examples --verbose; fi'
