@@ -7,19 +7,19 @@ rust:
   - beta
   - nightly
 env:
-  - MINVER=0
-  - MINVER=1
+  - "MINVER=false"
+  - "MINVER=true"
 matrix:
   allow_failures:
     - rust: nightly
   fast_finish: true
   exclude:
     - rust: beta
-      env: MINVER=1
+      env: "MINVER=true"
     - rust: nightly
-      env: MINVER=1
+      env: "MINVER=true"
 install:
-  - 'if [[ $MINVER = 1 ]]; then .travis/fix-ver.sh; fi'
+  - 'if [[ $MINVER = true ]]; then .travis/fix-ver.sh; fi'
   - cargo fetch
 before_script:
   - rustup component add rustfmt-preview
