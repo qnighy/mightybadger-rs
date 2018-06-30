@@ -19,13 +19,6 @@ matrix:
     - rust: nightly
       env: "MINVER=true"
 install:
-  - 'if [[ $MINVER = true ]]; then .travis/fix-ver.sh; fi'
-  - cargo fetch
-before_script:
   - rustup component add rustfmt-preview
 script:
-  - cargo build --examples --verbose
-  - cargo build -p honeybadger-actix-web --examples --verbose
-  - cargo build -p honeybadger-gotham --examples --verbose
-  - 'if [[ $TRAVIS_RUST_VERSION = nightly ]]; then cargo build -p honeybadger-rocket --examples --verbose; fi'
-  - 'if [[ $TRAVIS_RUST_VERSION = stable ]]; then cargo fmt --all -- --write-mode check; fi'
+  - .travis/build.sh
