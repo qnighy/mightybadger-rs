@@ -10,7 +10,7 @@ In addition to standalone configuration, it provides middlewares for [Rocket](ht
 
 ```toml
 [dependencies]
-honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "5139f5c" }
+honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
 ```
 
 ```rust
@@ -38,8 +38,8 @@ HONEYBADGER_API_KEY=your_own_api_key cargo run
 
 ```toml
 [dependencies]
-honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "5139f5c" }
-honeybadger-rocket = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "5139f5c" }
+honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
+honeybadger-rocket = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
 ```
 
 ```rust
@@ -61,8 +61,8 @@ fn main() {
 
 ```toml
 [dependencies]
-honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "5139f5c" }
-honeybadger-gotham = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "5139f5c" }
+honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
+honeybadger-gotham = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
 ```
 
 ```rust
@@ -93,8 +93,8 @@ fn main() {
 
 ```toml
 [dependencies]
-honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "5139f5c" }
-honeybadger-actix-web = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "5139f5c" }
+honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
+honeybadger-actix-web = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
 ```
 
 ```rust
@@ -131,12 +131,21 @@ Moreover, you can programmatically configure Honeybadger as follows:
 
 ```rust
 fn main() {
+    honeybadger::setup();
     honeybadger::configure(|config| {
-        // Force update API key
-        config.set_api_key(Some("foobar".to_string()));
-        // Update API key, if it doesn't exist
-        config.opt_set_api_key(Some("foobar".to_string()));
-        // The same applies for `env`, `report_data`, `root`, `revision`, and `hostname`.
+        if config.api_key.is_none() {
+            config.api_key = Some("abcd1234".to_string());
+        }
+        config.env = Some("production".to_string());
+        config.report_data = Some(true);
+        config.root = Some("/home/ubuntu/app".to_string());
+        config.revision = Some("0123456789abcdef0123456789abcdef01234567".to_string());
+        config.hostname = Some("api.example.com".to_string());
+        config.request.filter_keys = Some(vec![
+            "password".to_string(),
+            "HTTP_AUTHORIZATION".to_string(),
+            "passcode".to_string(),
+        ]);
     });
 }
 ```
@@ -192,7 +201,7 @@ fn main() {
 - [x] Global configuration via environment variables
 - [ ] Global configuration via YAML
 - [x] Global configuration via Rust functions
-- [ ] Travis
+- [x] Travis
 - [ ] Docs
 - [ ] Rust API stabilization
 
