@@ -1,4 +1,5 @@
 use std::env;
+use std::ops::Deref;
 use std::sync::{RwLock, RwLockReadGuard};
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -92,10 +93,20 @@ where
     *config = new_config;
 }
 
-pub(crate) fn read_config_safe() -> RwLockReadGuard<'static, Config> {
-    CONFIG.read().unwrap()
+#[derive(Debug)]
+pub struct ConfigReadGuard(RwLockReadGuard<'static, Config>);
+
+impl Deref for ConfigReadGuard {
+    type Target = Config;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
-pub fn read_config() -> RwLockReadGuard<'static, Config> {
-    CONFIG_PROXY.read().unwrap()
+pub(crate) fn read_config_safe() -> ConfigReadGuard {
+    ConfigReadGuard(CONFIG.read().unwrap())
+}
+
+pub fn read_config() -> ConfigReadGuard {
+    ConfigReadGuard(CONFIG_PROXY.read().unwrap())
 }
