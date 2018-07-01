@@ -1,7 +1,15 @@
 [package]
 name = "honeybadger-actix-web"
+description = "Honeybadger Notifier for Rust, middleware for Actix Web"
 version = "0.1.0"
 authors = ["Masaki Hara <ackie.h.gmai@gmail.com>"]
+
+homepage = "https://github.com/qnighy/honeybadger-rs"
+repository = "https://github.com/qnighy/honeybadger-rs.git"
+readme = "README.md"
+keywords = ["honeybadger", "actix-web"]
+categories = ["web-programming", "api-bindings", "development-tools"]
+license = "MIT"
 
 [dependencies]
 actix-web = { version = "0.6.12", default-features = false }
