@@ -1,5 +1,7 @@
 use std::env;
+use std::mem;
 use std::ops::Deref;
+use std::panic::{catch_unwind, resume_unwind, AssertUnwindSafe};
 use std::sync::{RwLock, RwLockReadGuard};
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -84,13 +86,30 @@ pub fn configure<F>(f: F)
 where
     F: FnOnce(&mut Config),
 {
-    let new_config = {
-        let mut config_proxy = CONFIG_PROXY.write().unwrap();
-        f(&mut config_proxy);
-        config_proxy.clone()
+    let mut config_proxy = CONFIG_PROXY
+        .write()
+        .expect("Could not acquire write-lock for honeybadger::config::CONFIG_PROXY.");
+    let result = {
+        let f = AssertUnwindSafe(f);
+        let config_proxy = AssertUnwindSafe(&mut config_proxy as &mut Config);
+        catch_unwind(move || {
+            (f.0)(config_proxy.0);
+            replace_config(config_proxy.clone());
+        })
     };
-    let mut config = CONFIG.write().unwrap();
-    *config = new_config;
+    if let Err(e) = result {
+        let config = read_config();
+        config_proxy.clone_from(&config);
+        mem::drop(config_proxy);
+        resume_unwind(e);
+    }
+}
+
+fn replace_config(new_config: Config) -> Config {
+    let mut config = CONFIG
+        .write()
+        .expect("Could not acquire write-lock for honeybadger::config::CONFIG.");
+    mem::replace(&mut config, new_config)
 }
 
 #[derive(Debug)]
@@ -104,5 +123,9 @@ impl Deref for ConfigReadGuard {
 }
 
 pub fn read_config() -> ConfigReadGuard {
-    ConfigReadGuard(CONFIG.read().unwrap())
+    ConfigReadGuard(
+        CONFIG
+            .read()
+            .expect("Could not acquire read-lock for honeybadger::config::CONFIG"),
+    )
 }
