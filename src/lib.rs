@@ -32,7 +32,7 @@ mod stats;
 
 use failure::{Backtrace, Fail};
 use payload::*;
-use rand::Rng;
+use rand::RngCore;
 use reqwest::header::{qitem, Accept, ContentType, UserAgent};
 use reqwest::{mime, StatusCode};
 use std::panic::{set_hook, take_hook, PanicInfo};

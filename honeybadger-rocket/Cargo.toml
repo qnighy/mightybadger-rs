@@ -12,8 +12,9 @@ categories = ["web-programming", "api-bindings", "development-tools"]
 license = "MIT"
 
 [dependencies]
-rocket = "0.3"
+rocket = { version = "0.3", default-features = false }
 honeybadger = { path = ".." }
 
 [dev-dependencies]
+rocket = { version = "0.3", default-features = true }
 rocket_codegen = "0.3"
