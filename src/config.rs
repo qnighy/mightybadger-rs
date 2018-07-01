@@ -103,10 +103,6 @@ impl Deref for ConfigReadGuard {
     }
 }
 
-pub(crate) fn read_config_safe() -> ConfigReadGuard {
-    ConfigReadGuard(CONFIG.read().unwrap())
-}
-
 pub fn read_config() -> ConfigReadGuard {
-    ConfigReadGuard(CONFIG_PROXY.read().unwrap())
+    ConfigReadGuard(CONFIG.read().unwrap())
 }

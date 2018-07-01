@@ -120,7 +120,7 @@ pub struct ServerInfo {
 
 impl ServerInfo {
     pub fn generate() -> Self {
-        let config = config::read_config_safe();
+        let config = config::read_config();
         let time = Utc::now().format("%Y-%m-%d %H:%M:%S %Z").to_string();
         let pid = process::id();
         let stats = Stats::generate();
