@@ -164,7 +164,7 @@ fn notify_internal(
     error: &Fail,
     id: &Option<Uuid>,
 ) -> Result<HoneybadgerResponse, HoneybadgerError> {
-    let config = config::read_config_safe();
+    let config = config::read_config();
     let report_data = config.report_data.unwrap_or_else(|| {
         let env = config.env.as_ref().map(|s| s.as_str()).unwrap_or("");
         ["test", "development", "cucumber"]

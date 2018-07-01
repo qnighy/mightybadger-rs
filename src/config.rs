@@ -1,27 +1,79 @@
+//! Honeybadger configuration.
+//!
+//! This module defines [`Config`][Config] and related functions.
+//!
+//! [Config]: struct.Config.html
+//!
+//! Basically you will need [`configure`][configure] for modifying the configuration
+//! and [`read_config`][read_config] for reading the configuration.
+//!
+//! [configure]: fn.configure.html
+//! [read_config]: fn.read_config.html
+
 use std::env;
+use std::mem;
+use std::ops::Deref;
+use std::panic::{catch_unwind, resume_unwind, AssertUnwindSafe};
 use std::sync::{RwLock, RwLockReadGuard};
 
+/// Honeybadger configuration.
+///
+/// It roughly corresponds with [the Ruby notifier configuration][ruby-config].
+///
+/// [ruby-config]: https://docs.honeybadger.io/ruby/gem-reference/configuration.html
+///
+/// To **modify** the global configuration, use [`configure`][configure].
+/// To **inspect** the global configuration, use [`read_config`][read_config].
+///
+/// [configure]: fn.configure.html
+/// [read_config]: fn.read_config.html
+///
+/// ## Examples
+///
+/// ```
+/// honeybadger::configure(|config| {
+///     config.api_key = Some("abcd1234".to_string());
+///     config.env = Some("production".to_string());
+/// });
+/// ```
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct Config {
+    /// The API key for your Honeybadger project.
     pub api_key: Option<String>,
+    /// The environment the app is running in e.g. `"development"` and `"production"`.
     pub env: Option<String>,
+    /// Enable/disable reporting of data.
+    /// Defaults to `false` for `"test"`, `"development"`, and `"cucumber"` environments.
     pub report_data: Option<bool>,
+    /// The project's absolute root path.
     pub root: Option<String>,
+    /// The project's git revision.
     pub revision: Option<String>,
+    /// The hostname of the current box.
     pub hostname: Option<String>,
+    /// Request data filtering options.
     pub request: RequestConfig,
     #[doc(hidden)]
     pub _non_exhaustive: (),
 }
 
+/// Request data filtering options.
+///
+/// This is part of [`Config`][Config] data structure.
+///
+/// [Config]: struct.Config.html
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct RequestConfig {
+    /// A list of keys to filter when sending request data.
+    /// Defaults to `["password", "HTTP_AUTHORIZATION"]`.
     pub filter_keys: Option<Vec<String>>,
     #[doc(hidden)]
     pub _non_exhaustive: (),
 }
 
 impl RequestConfig {
+    /// Returns `true` if the key likely contains secrets and
+    /// should be filtered out before sending reports.
     pub(crate) fn filter_key(&self, key: &str) -> bool {
         if let Some(ref filter_keys) = self.filter_keys {
             filter_keys.iter().any(|s| key.contains(s))
@@ -34,10 +86,19 @@ impl RequestConfig {
 }
 
 lazy_static! {
+    /// Global Honeybadger configuration.
     static ref CONFIG: RwLock<Config> = RwLock::new(Config::default());
+    /// The copy of the global configuration. Used by `configure`.
     static ref CONFIG_PROXY: RwLock<Config> = RwLock::new(Config::default());
 }
 
+/// Reads configuration from the `HONEYBADGER_*` environment variables.
+///
+/// Replaces the config only if the field is `None`.
+///
+/// It is called as a part of [`honeybadger::setup`][::setup].
+///
+/// [::setup]: ../fn.setup.html
 pub fn configure_from_env() {
     fn set_string(entry: &mut Option<String>, env_name: &str) {
         if entry.is_none() {
@@ -79,23 +140,175 @@ pub fn configure_from_env() {
     })
 }
 
+/// Modifies Honeybadger configuration.
+///
+/// ## Example
+///
+/// ```
+/// honeybadger::configure(|config| {
+///     config.env = Some("staging".to_string());
+/// });
+/// ```
+///
+/// ## Panics
+///
+/// It may (but not necessarily) panic if:
+///
+/// - the thread tries a nested call to `configure`, or
+/// - the thread tries to finish `configure` while holding a lock acquired by `read_config`.
+///
+/// In addition to those, a panic from the callback is also propagated.
+///
+/// ## Notes on multithreading
+///
+/// To make extra guarantee about panic-safety, it does more than a simple `RwLock`.
+/// Therefore you may observe a different behavior.
+///
+/// `configure` does the following:
+///
+/// 1. Acquires write-lock for `CONFIG_PROXY`, which is **the copy of** the configuration.
+/// 2. Calls back the given closure.
+/// 3. Acquires write-lock for `CONFIG`, which is the actual configuration.
+/// 4. Copies `CONFIG_PROXY` into `CONFIG`.
+/// 5. If a panic occurs during 2-4, then rolls back `CONFIG_PROXY`, and resumes panicking.
+///
+/// Therefore [`read_config`][read_config] always succeeds, even in `configure` itself.
+///
+/// [read_config]: fn.read_config.html
 pub fn configure<F>(f: F)
 where
     F: FnOnce(&mut Config),
 {
-    let new_config = {
-        let mut config_proxy = CONFIG_PROXY.write().unwrap();
-        f(&mut config_proxy);
-        config_proxy.clone()
+    let mut config_proxy = CONFIG_PROXY
+        .write()
+        .expect("Could not acquire write-lock for honeybadger::config::CONFIG_PROXY.");
+    let result = {
+        let f = AssertUnwindSafe(f);
+        let config_proxy = AssertUnwindSafe(&mut config_proxy as &mut Config);
+        catch_unwind(move || {
+            (f.0)(config_proxy.0);
+            replace_config(config_proxy.clone());
+        })
     };
-    let mut config = CONFIG.write().unwrap();
-    *config = new_config;
+    if let Err(e) = result {
+        let config = read_config();
+        config_proxy.clone_from(&config);
+        mem::drop(config_proxy);
+        resume_unwind(e);
+    }
 }
 
-pub(crate) fn read_config_safe() -> RwLockReadGuard<'static, Config> {
-    CONFIG.read().unwrap()
+/// The part of `configure` that actually touches `CONFIG`.
+///
+/// Since we only do `mem::replace` after lock acquisition (even without dropping),
+/// it is guaranteed not to poison `CONFIG`.
+fn replace_config(new_config: Config) -> Config {
+    let mut config = CONFIG
+        .write()
+        .expect("Could not acquire write-lock for honeybadger::config::CONFIG.");
+    mem::replace(&mut config, new_config)
 }
 
-pub fn read_config() -> RwLockReadGuard<'static, Config> {
-    CONFIG_PROXY.read().unwrap()
+/// Read-lock to the global configuration.
+///
+/// Returned by [`read_config`][read_config].
+///
+/// [read_config]: fn.read_config.html
+#[derive(Debug)]
+pub struct ConfigReadGuard(RwLockReadGuard<'static, Config>);
+
+impl Deref for ConfigReadGuard {
+    type Target = Config;
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+/// Acquires a read-only lock for the global configuration. This is panic-safe.
+///
+/// The acquired lock blocks the end of [`configure`][configure].
+///
+/// [configure]: fn.configure.html
+///
+/// ## Example
+///
+/// ```
+/// let config = honeybadger::config::read_config();
+/// println!("config.env = {:?}", config.env);
+/// ```
+pub fn read_config() -> ConfigReadGuard {
+    ConfigReadGuard(
+        CONFIG
+            .read()
+            .expect("Could not acquire read-lock for honeybadger::config::CONFIG"),
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::{Mutex, MutexGuard};
+
+    lazy_static! {
+        static ref CONFIG_TEST_GUARD: Mutex<()> = Mutex::new(());
+    }
+
+    fn reset() -> MutexGuard<'static, ()> {
+        let guard = match CONFIG_TEST_GUARD.lock() {
+            Ok(guard) => guard,
+            Err(poisoned) => poisoned.into_inner(),
+        };
+        configure(|config| {
+            *config = Default::default();
+        });
+        guard
+    }
+
+    #[test]
+    fn test_read_config() {
+        let _guard = reset();
+        let config = read_config();
+        assert_eq!(config.env, None);
+    }
+
+    #[test]
+    fn test_configure() {
+        let _guard = reset();
+        configure(|config| {
+            assert_eq!(config.env, None);
+            config.env = Some("foo".to_string());
+        });
+        configure(|config| {
+            assert_eq!(config.env, Some("foo".to_string()));
+        });
+        let config = read_config();
+        assert_eq!(config.env, Some("foo".to_string()));
+    }
+
+    #[test]
+    fn test_configure_panic_recovery() {
+        let _guard = reset();
+        let r = catch_unwind(|| {
+            configure(|config| {
+                config.env = Some("foo".to_string());
+                panic!();
+            });
+        });
+        assert!(r.is_err());
+        configure(|config| {
+            assert_eq!(config.env, None);
+        });
+    }
+
+    #[test]
+    fn test_read_config_in_configure() {
+        let _guard = reset();
+        let config2 = read_config();
+        configure(move |config| {
+            config.env = Some("foo".to_string());
+            let config3 = read_config();
+            assert_eq!(config2.env, None);
+            assert_eq!(config3.env, None);
+        });
+    }
 }
