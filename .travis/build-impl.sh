@@ -12,6 +12,7 @@ for package in "${PACKAGES[@]}"; do
   fi
 
   cargo build -p $package --examples --verbose
+  cargo test -p $package --verbose
 done
 
 if [[ ${TRAVIS_RUST_VERSION:-} = stable ]]; then
