@@ -12,9 +12,9 @@ categories = ["web-programming", "api-bindings", "development-tools"]
 license = "MIT"
 
 [dependencies]
-actix-web = { version = "0.6.12", default-features = false }
+actix-web = { version = "0.7.0", default-features = false }
 honeybadger = { path = ".." }
 failure = "0.1.1"
 
 [dev-dependencies]
-actix-web = { version = "0.6.12", default-features = true }
+actix-web = { version = "0.7.0", default-features = true }

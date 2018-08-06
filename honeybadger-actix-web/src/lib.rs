@@ -25,7 +25,7 @@ pub struct ErrorStatus(StatusCode);
 impl<S> Middleware<S> for HoneybadgerMiddleware {
     fn response(
         &self,
-        req: &mut HttpRequest<S>,
+        req: &HttpRequest<S>,
         resp: HttpResponse,
     ) -> actix_web::error::Result<Response> {
         let status = resp.status();
