@@ -16,5 +16,5 @@ for package in "${PACKAGES[@]}"; do
 done
 
 if [[ ${TRAVIS_RUST_VERSION:-} = stable ]]; then
-  cargo fmt --all -- --write-mode check
+  cargo fmt --all -- --check
 fi
