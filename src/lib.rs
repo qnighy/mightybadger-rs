@@ -136,7 +136,8 @@ fn honeybadger_panic_hook(panic_info: &PanicInfo) {
 
 pub fn notify(error: &Fail) {
     let id = random_uuid();
-    let iddisp = id.as_ref()
+    let iddisp = id
+        .as_ref()
         .map(|u| u.to_string())
         .unwrap_or_else(|| "nil".to_string());
     let resp = match notify_internal(error, &id) {

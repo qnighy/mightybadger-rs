@@ -49,7 +49,8 @@ impl<S> Middleware<S> for HoneybadgerMiddleware {
                 cgi_data.insert(name, String::from_utf8_lossy(value.as_bytes()).to_string());
             }
             let url = format!("http://localhost/{}", req.path());
-            let params: HashMap<String, String> = req.query()
+            let params: HashMap<String, String> = req
+                .query()
                 .iter()
                 .map(|(key, value)| (key.to_string(), value.to_string()))
                 .collect::<HashMap<String, String>>();
