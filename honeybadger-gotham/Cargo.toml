@@ -12,12 +12,12 @@ categories = ["web-programming", "api-bindings", "development-tools"]
 license = "MIT"
 
 [dependencies]
-futures = "0.1.21"
-hyper = { version = "0.11.7", default-features = false }
-gotham = "0.2.0"
-gotham_derive = "0.2.0"
+futures = "0.1.23"
+hyper = { version = "0.12.7", default-features = false }
+gotham = "0.3.0"
+gotham_derive = "0.3.0"
 honeybadger = { path = ".." }
 
 [dev-dependencies]
-mime = "0.3.4"
-tokio = "0.1.7"
+mime = "0.3.7"
+tokio = "0.1.9"
