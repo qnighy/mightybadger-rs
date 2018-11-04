@@ -18,8 +18,6 @@ extern crate serde_json;
 #[macro_use]
 extern crate failure;
 
-#[macro_use]
-extern crate hyper;
 extern crate reqwest;
 
 extern crate rustc_version_runtime;
@@ -33,8 +31,8 @@ mod stats;
 use failure::{Backtrace, Fail};
 use payload::*;
 use rand::RngCore;
-use reqwest::header::{qitem, Accept, ContentType, UserAgent};
-use reqwest::{mime, StatusCode};
+use reqwest::header::{ACCEPT, CONTENT_TYPE, USER_AGENT};
+use reqwest::StatusCode;
 use std::panic::{set_hook, take_hook, PanicInfo};
 use uuid::Uuid;
 use HoneybadgerError::*;
@@ -87,10 +85,6 @@ pub enum HoneybadgerError {
     ResponseDecodeFailed(#[cause] reqwest::Error, Backtrace),
 }
 
-header! {
-    (XApiKey, "X-API-Key") => [String]
-}
-
 #[derive(Deserialize)]
 struct HoneybadgerResponse {
     id: Uuid,
@@ -111,19 +105,19 @@ fn report(payload: &Payload) -> Result<HoneybadgerResponse, HoneybadgerError> {
     let resp = client
         .post("https://api.honeybadger.io/v1/notices")
         .body(payload)
-        .header(XApiKey(api_key))
-        .header(ContentType(mime::APPLICATION_JSON))
-        .header(Accept(vec![qitem(mime::APPLICATION_JSON)]))
-        .header(UserAgent::new(client_version))
+        .header("X-API-Key", api_key)
+        .header(CONTENT_TYPE, "application/json")
+        .header(ACCEPT, "application/json")
+        .header(USER_AGENT, client_version)
         .send();
     let mut resp = resp.map_err(|e| HttpRequestFailed(e, Backtrace::new()))?;
     match resp.status() {
-        StatusCode::TooManyRequests | StatusCode::ServiceUnavailable => {
+        StatusCode::TOO_MANY_REQUESTS | StatusCode::SERVICE_UNAVAILABLE => {
             return Err(TooManyRequests(Backtrace::new()))
         }
-        StatusCode::PaymentRequired => return Err(PaymentRequired(Backtrace::new())),
-        StatusCode::Forbidden => return Err(Forbidden(Backtrace::new())),
-        StatusCode::Created => {}
+        StatusCode::PAYMENT_REQUIRED => return Err(PaymentRequired(Backtrace::new())),
+        StatusCode::FORBIDDEN => return Err(Forbidden(Backtrace::new())),
+        StatusCode::CREATED => {}
         _ => return Err(UnknownResponse(Backtrace::new())),
     }
     resp.json()
