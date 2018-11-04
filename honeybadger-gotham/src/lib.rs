@@ -57,8 +57,7 @@ impl Middleware for HoneybadgerMiddleware {
                         } else {
                             ch.to_ascii_uppercase()
                         }
-                    })
-                    .collect::<String>();
+                    }).collect::<String>();
                 cgi_data.insert(name, header.value_string());
             }
             RequestInfo {

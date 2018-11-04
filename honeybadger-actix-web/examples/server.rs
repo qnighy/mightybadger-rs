@@ -50,6 +50,6 @@ fn main() {
             .route("/error", Method::GET, error)
             .route("/error_panic", Method::GET, error_panic)
     }).bind("localhost:7878")
-        .expect("bind failed")
-        .run();
+    .expect("bind failed")
+    .run();
 }
