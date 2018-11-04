@@ -7,13 +7,13 @@ extern crate honeybadger;
 extern crate honeybadger_gotham;
 
 use gotham::handler::HandlerFuture;
-use gotham::http::response::create_response;
+use gotham::helpers::http::response::create_response;
 use gotham::pipeline::new_pipeline;
 use gotham::pipeline::single::single_pipeline;
 use gotham::router::builder::*;
 use gotham::router::Router;
 use gotham::state::State;
-use hyper::{Response, StatusCode};
+use hyper::{Body, Response, StatusCode};
 use std::time::{Duration, Instant};
 use tokio::prelude::*;
 use tokio::timer::Delay;
@@ -32,21 +32,21 @@ fn router() -> Router {
     })
 }
 
-fn index(state: State) -> (State, Response) {
+fn index(state: State) -> (State, Response<Body>) {
     let bytes = "Hello, world!".to_string().into_bytes();
-    let res = create_response(&state, StatusCode::Ok, Some((bytes, mime::TEXT_PLAIN)));
+    let res = create_response(&state, StatusCode::OK, mime::TEXT_PLAIN, bytes);
 
     (state, res)
 }
 
-fn ping(state: State) -> (State, Response) {
+fn ping(state: State) -> (State, Response<Body>) {
     let bytes = "pong".to_string().into_bytes();
-    let res = create_response(&state, StatusCode::Ok, Some((bytes, mime::TEXT_PLAIN)));
+    let res = create_response(&state, StatusCode::OK, mime::TEXT_PLAIN, bytes);
 
     (state, res)
 }
 
-fn error(_state: State) -> (State, Response) {
+fn error(_state: State) -> (State, Response<Body>) {
     panic!("/error is requested");
 }
 

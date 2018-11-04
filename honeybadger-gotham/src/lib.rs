@@ -10,7 +10,7 @@ use futures::{Future, Poll};
 use gotham::handler::HandlerFuture;
 use gotham::middleware::Middleware;
 use gotham::state::{FromState, State};
-use hyper::header::Headers;
+use hyper::HeaderMap;
 use std::collections::HashMap;
 
 use honeybadger::payload::RequestInfo;
@@ -46,11 +46,11 @@ impl Middleware for HoneybadgerMiddleware {
     {
         let request_info = {
             let mut cgi_data = HashMap::new();
-            let headers = Headers::borrow_from(&state);
-            for header in headers.iter() {
+            let headers = HeaderMap::borrow_from(&state);
+            for (name, value) in headers.iter() {
                 let name = "HTTP_"
                     .chars()
-                    .chain(header.name().chars())
+                    .chain(name.as_str().chars())
                     .map(|ch| {
                         if ch == '-' {
                             '_'
@@ -58,7 +58,7 @@ impl Middleware for HoneybadgerMiddleware {
                             ch.to_ascii_uppercase()
                         }
                     }).collect::<String>();
-                cgi_data.insert(name, header.value_string());
+                cgi_data.insert(name, String::from_utf8_lossy(value.as_bytes()).into_owned());
             }
             RequestInfo {
                 cgi_data: cgi_data,
