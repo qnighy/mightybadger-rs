@@ -126,8 +126,7 @@ pub fn trim_backtrace(bt_lines: &mut Vec<BacktraceLine>) {
             trim_paths
                 .iter()
                 .any(|trim_path| bt_line.method.starts_with(trim_path))
-        })
-        .map(|x| x + 1)
+        }).map(|x| x + 1)
         .unwrap_or(0);
 
     bt_lines.drain(..pos);
@@ -173,8 +172,7 @@ pub fn decorate(bt_lines: Vec<BacktraceLine>) -> Vec<BacktraceEntry> {
                 method: bt_line.method,
                 source: source,
             }
-        })
-        .collect::<Vec<_>>()
+        }).collect::<Vec<_>>()
 }
 
 pub fn parse_and_decorate(bt: &Backtrace) -> Vec<BacktraceEntry> {

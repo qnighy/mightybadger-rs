@@ -42,8 +42,7 @@ impl Fairing for HoneybadgerHook {
                     } else {
                         ch.to_ascii_uppercase()
                     }
-                })
-                .collect::<String>();
+                }).collect::<String>();
             cgi_data.insert(name, header.value().to_string());
         }
         // TODO: dummy hostname
