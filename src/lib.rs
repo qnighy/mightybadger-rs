@@ -113,7 +113,7 @@ fn report(payload: &Payload) -> Result<HoneybadgerResponse, HoneybadgerError> {
     let mut resp = resp.map_err(|e| HttpRequestFailed(e, Backtrace::new()))?;
     match resp.status() {
         StatusCode::TOO_MANY_REQUESTS | StatusCode::SERVICE_UNAVAILABLE => {
-            return Err(TooManyRequests(Backtrace::new()))
+            return Err(TooManyRequests(Backtrace::new()));
         }
         StatusCode::PAYMENT_REQUIRED => return Err(PaymentRequired(Backtrace::new())),
         StatusCode::FORBIDDEN => return Err(Forbidden(Backtrace::new())),
