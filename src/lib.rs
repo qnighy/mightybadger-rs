@@ -303,10 +303,14 @@ pub fn setup() {
 }
 
 fn random_uuid() -> Option<Uuid> {
-    let mut rng = rand::os::OsRng::new().ok()?;
+    let mut rng = rand::rngs::OsRng::new().ok()?;
 
     let mut bytes = [0; 16];
     rng.fill_bytes(&mut bytes);
 
-    Some(Uuid::from_random_bytes(bytes))
+    let uuid = uuid::Builder::from_bytes(bytes)
+        .set_variant(uuid::Variant::RFC4122)
+        .set_version(uuid::Version::Random)
+        .build();
+    Some(uuid)
 }
