@@ -33,6 +33,7 @@ use payload::*;
 use rand::RngCore;
 use reqwest::header::{ACCEPT, CONTENT_TYPE, USER_AGENT};
 use reqwest::StatusCode;
+use std::fmt;
 use std::panic::{set_hook, take_hook, PanicInfo};
 use uuid::Uuid;
 use HoneybadgerError::*;
@@ -129,6 +130,44 @@ fn honeybadger_panic_hook(panic_info: &PanicInfo) {
 }
 
 pub fn notify(error: &Fail) {
+    notify_either(FailOrError::Fail(error))
+}
+
+pub fn notify_std_error(error: &(std::error::Error + 'static)) {
+    notify_either(FailOrError::StdError(error))
+}
+
+#[derive(Debug, Clone, Copy)]
+enum FailOrError<'a> {
+    Fail(&'a Fail),
+    StdError(&'a (std::error::Error + 'static)),
+}
+
+impl<'a> FailOrError<'a> {
+    fn cause(self) -> Option<FailOrError<'a>> {
+        match self {
+            FailOrError::Fail(error) => error.cause().map(FailOrError::Fail),
+            FailOrError::StdError(error) => error.source().map(FailOrError::StdError),
+        }
+    }
+    fn backtrace(self) -> Option<&'a Backtrace> {
+        if let FailOrError::Fail(error) = self {
+            error.backtrace()
+        } else {
+            None
+        }
+    }
+}
+impl<'a> fmt::Display for FailOrError<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            FailOrError::Fail(error) => fmt::Display::fmt(error, f),
+            FailOrError::StdError(error) => fmt::Display::fmt(error, f),
+        }
+    }
+}
+
+fn notify_either<'a>(error: FailOrError<'a>) {
     let id = random_uuid();
     let iddisp = id
         .as_ref()
@@ -155,8 +194,8 @@ pub fn notify(error: &Fail) {
     );
 }
 
-fn notify_internal(
-    error: &Fail,
+fn notify_internal<'a>(
+    error: FailOrError<'a>,
     id: &Option<Uuid>,
 ) -> Result<HoneybadgerResponse, HoneybadgerError> {
     let config = config::read_config();
@@ -220,15 +259,35 @@ fn notify_internal(
     report(&payload)
 }
 
-fn error_class(error: &Fail) -> String {
+fn error_class<'a>(error: FailOrError<'a>) -> String {
     macro_rules! error_classes {
         ($($class:ty,)*) => {
             $(
-                if Fail::downcast_ref::<$class>(error).is_some() {
-                    return stringify!($class).to_string();
+                if let FailOrError::Fail(error) = error {
+                    if Fail::downcast_ref::<$class>(error).is_some() {
+                        return stringify!($class).to_string();
+                    }
+                    if Fail::downcast_ref::<failure::Context<$class>>(error).is_some() {
+                        return stringify!(failure::Context<$class>).to_string();
+                    }
+                } else if let FailOrError::StdError(error) = error {
+                    if std::error::Error::downcast_ref::<$class>(error).is_some() {
+                        return stringify!($class).to_string();
+                    }
                 }
-                if Fail::downcast_ref::<failure::Context<$class>>(error).is_some() {
-                    return stringify!(failure::Context<$class>).to_string();
+            )*
+        };
+    }
+    macro_rules! fail_classes {
+        ($($class:ty,)*) => {
+            $(
+                if let FailOrError::Fail(error) = error {
+                    if Fail::downcast_ref::<$class>(error).is_some() {
+                        return stringify!($class).to_string();
+                    }
+                    if Fail::downcast_ref::<failure::Context<$class>>(error).is_some() {
+                        return stringify!(failure::Context<$class>).to_string();
+                    }
                 }
             )*
         };
@@ -267,8 +326,8 @@ fn error_class(error: &Fail) -> String {
         std::sync::mpsc::TryRecvError,
         // std::sync::mpsc::TrySendError<T>,
         std::time::SystemTimeError,
-        honeybadger::Panic,
     );
+    fail_classes!(honeybadger::Panic,);
     // hack for stringify
     mod honeybadger {
         pub use Panic;
