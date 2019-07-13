@@ -239,6 +239,11 @@ fn notify_internal<'a>(
 }
 
 fn error_class<'a>(error: FailOrError<'a>) -> String {
+    if let FailOrError::Fail(error) = error {
+        if let Some(name) = error.name() {
+            return name.to_owned();
+        }
+    }
     macro_rules! error_classes {
         ($($class:ty,)*) => {
             $(
