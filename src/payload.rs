@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, HashMap};
 use std::process;
 
 use chrono::Utc;
-use serde_json;
+use serde_derive::Serialize;
 use uuid::Uuid;
 
 use crate::config;

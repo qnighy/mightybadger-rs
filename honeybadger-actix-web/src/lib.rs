@@ -1,16 +1,10 @@
-use actix_web;
-use honeybadger;
-#[macro_use]
-extern crate failure;
-
-use serde_urlencoded;
-
 use futures::prelude::*;
 
 use std::collections::HashMap;
 
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
 use actix_web::http::{HeaderMap, StatusCode, Uri};
+use failure::Fail;
 use honeybadger::payload::RequestInfo;
 
 use futures::future::{self, FutureResult};

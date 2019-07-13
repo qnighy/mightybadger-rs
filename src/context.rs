@@ -4,6 +4,8 @@
 
 use std::cell::RefCell;
 
+use scoped_tls::scoped_thread_local;
+
 use crate::payload::RequestInfo;
 
 scoped_thread_local!(

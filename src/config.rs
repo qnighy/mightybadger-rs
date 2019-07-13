@@ -16,6 +16,8 @@ use std::ops::Deref;
 use std::panic::{catch_unwind, resume_unwind, AssertUnwindSafe};
 use std::sync::{RwLock, RwLockReadGuard};
 
+use lazy_static::lazy_static;
+
 /// Honeybadger configuration.
 ///
 /// It roughly corresponds with [the Ruby notifier configuration][ruby-config].

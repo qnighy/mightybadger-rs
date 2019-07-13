@@ -1,9 +1,6 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
-use honeybadger;
-use honeybadger_rocket;
-#[macro_use]
-extern crate rocket;
+use rocket::{get, routes};
 
 #[get("/")]
 fn index() -> &'static str {

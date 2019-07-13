@@ -1,25 +1,5 @@
 //! Honeybadger notifier for Rust.
 
-#[macro_use]
-extern crate lazy_static;
-#[macro_use]
-extern crate scoped_tls;
-
-use rand;
-
-use uuid;
-
-#[macro_use]
-extern crate serde_derive;
-use serde_json;
-
-#[macro_use]
-extern crate failure;
-
-use reqwest;
-
-use rustc_version_runtime;
-
 mod btparse;
 pub mod config;
 pub mod context;
@@ -32,6 +12,7 @@ use failure::{Backtrace, Fail};
 use rand::RngCore;
 use reqwest::header::{ACCEPT, CONTENT_TYPE, USER_AGENT};
 use reqwest::StatusCode;
+use serde_derive::Deserialize;
 use std::fmt;
 use std::panic::{set_hook, take_hook, PanicInfo};
 use uuid::Uuid;
