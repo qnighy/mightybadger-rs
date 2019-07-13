@@ -3,17 +3,22 @@ dist: trusty
 language: rust
 cache: cargo
 rust:
-  - stable
-  - beta
-  - nightly
+- stable
+- beta
+- nightly
 matrix:
   allow_failures:
-    - rust: nightly
+  - rust: nightly
   fast_finish: true
   include:
-    - rust: stable
-      env: "MINVER=true"
+  - rust: stable
+    env: "MINVER=true"
 install:
-  - rustup component add rustfmt-preview
+- rustup component add rustfmt
+- if [[ ! -e $TRAVIS_HOME/.cargo/bin/cargo-sweep ]]; then cargo install --version 0.4.1 cargo-sweep; fi
+before_script:
+- cargo sweep -s
 script:
-  - .travis/build.sh
+- .travis/build.sh
+before_cache:
+- cargo sweep -f
