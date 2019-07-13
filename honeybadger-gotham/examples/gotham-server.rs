@@ -2,7 +2,6 @@ use gotham;
 
 use mime;
 
-
 use honeybadger;
 use honeybadger_gotham;
 

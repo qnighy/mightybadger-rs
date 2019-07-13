@@ -1,8 +1,6 @@
-
 use gotham;
 #[macro_use]
 extern crate gotham_derive;
-
 
 use honeybadger;
 

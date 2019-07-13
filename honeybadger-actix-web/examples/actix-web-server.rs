@@ -2,7 +2,6 @@ use actix_web;
 
 use honeybadger;
 
-
 #[macro_use]
 extern crate failure;
 

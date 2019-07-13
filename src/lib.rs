@@ -1,6 +1,5 @@
 //! Honeybadger notifier for Rust.
 
-
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
@@ -9,7 +8,6 @@ extern crate scoped_tls;
 use rand;
 
 use uuid;
-
 
 #[macro_use]
 extern crate serde_derive;
@@ -28,15 +26,15 @@ pub mod context;
 pub mod payload;
 mod stats;
 
-use failure::{Backtrace, Fail};
 use crate::payload::*;
+use crate::HoneybadgerError::*;
+use failure::{Backtrace, Fail};
 use rand::RngCore;
 use reqwest::header::{ACCEPT, CONTENT_TYPE, USER_AGENT};
 use reqwest::StatusCode;
 use std::fmt;
 use std::panic::{set_hook, take_hook, PanicInfo};
 use uuid::Uuid;
-use crate::HoneybadgerError::*;
 
 pub use crate::config::configure;
 pub use crate::config::configure_from_env;

@@ -1,6 +1,5 @@
 use honeybadger;
 
-
 use honeybadger::payload::RequestInfo;
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::{Data, Request, Response};
