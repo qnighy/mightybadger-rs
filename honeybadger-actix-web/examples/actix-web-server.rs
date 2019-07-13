@@ -1,7 +1,7 @@
-extern crate actix_web;
+use actix_web;
 
-extern crate honeybadger;
-extern crate honeybadger_actix_web;
+use honeybadger;
+
 
 #[macro_use]
 extern crate failure;

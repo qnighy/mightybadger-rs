@@ -1,7 +1,7 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
-extern crate honeybadger;
-extern crate honeybadger_rocket;
+use honeybadger;
+use honeybadger_rocket;
 #[macro_use]
 extern crate rocket;
 

@@ -1,5 +1,5 @@
-extern crate honeybadger;
-extern crate rocket;
+use honeybadger;
+
 
 use honeybadger::payload::RequestInfo;
 use rocket::fairing::{Fairing, Info, Kind};
@@ -22,7 +22,7 @@ impl Fairing for HoneybadgerHook {
         }
     }
 
-    fn on_request(&self, request: &mut Request, _data: &Data) {
+    fn on_request(&self, request: &mut Request<'_>, _data: &Data) {
         let mut cgi_data = HashMap::new();
         if let Some(remote_addr) = request.remote() {
             cgi_data.insert("REMOTE_ADDR".to_string(), remote_addr.ip().to_string());
@@ -56,7 +56,7 @@ impl Fairing for HoneybadgerHook {
         honeybadger::context::set(request_info);
     }
 
-    fn on_response(&self, _request: &Request, _response: &mut Response) {
+    fn on_response(&self, _request: &Request<'_>, _response: &mut Response<'_>) {
         honeybadger::context::unset();
     }
 }

@@ -1,26 +1,26 @@
 //! Honeybadger notifier for Rust.
 
-extern crate chrono;
+
 #[macro_use]
 extern crate lazy_static;
 #[macro_use]
 extern crate scoped_tls;
 
-extern crate rand;
+use rand;
 
-extern crate uuid;
+use uuid;
 
-extern crate serde;
+
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_json;
+use serde_json;
 
 #[macro_use]
 extern crate failure;
 
-extern crate reqwest;
+use reqwest;
 
-extern crate rustc_version_runtime;
+use rustc_version_runtime;
 
 mod btparse;
 pub mod config;
@@ -50,7 +50,7 @@ pub struct Panic {
 }
 
 impl Panic {
-    fn new(panic_info: &PanicInfo) -> Self {
+    fn new(panic_info: &PanicInfo<'_>) -> Self {
         let message = if let Some(message) = panic_info.payload().downcast_ref::<String>() {
             message.to_string()
         } else if let Some(&message) = panic_info.payload().downcast_ref::<&'static str>() {
@@ -125,7 +125,7 @@ fn report(payload: &Payload) -> Result<HoneybadgerResponse, HoneybadgerError> {
         .map_err(|e| ResponseDecodeFailed(e, Backtrace::new()))
 }
 
-fn honeybadger_panic_hook(panic_info: &PanicInfo) {
+fn honeybadger_panic_hook(panic_info: &PanicInfo<'_>) {
     notify(&Panic::new(panic_info));
 }
 
@@ -159,7 +159,7 @@ impl<'a> FailOrError<'a> {
     }
 }
 impl<'a> fmt::Display for FailOrError<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match *self {
             FailOrError::Fail(error) => fmt::Display::fmt(error, f),
             FailOrError::StdError(error) => fmt::Display::fmt(error, f),

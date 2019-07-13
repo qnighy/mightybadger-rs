@@ -1,4 +1,4 @@
-extern crate honeybadger;
+use honeybadger;
 
 use std::fs::File;
 

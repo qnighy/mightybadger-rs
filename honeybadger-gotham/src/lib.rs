@@ -1,10 +1,10 @@
-extern crate futures;
-extern crate gotham;
+
+use gotham;
 #[macro_use]
 extern crate gotham_derive;
-extern crate hyper;
 
-extern crate honeybadger;
+
+use honeybadger;
 
 use futures::{Future, Poll};
 use gotham::handler::HandlerFuture;

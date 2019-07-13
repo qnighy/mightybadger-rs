@@ -1,9 +1,9 @@
-extern crate actix_web;
-extern crate honeybadger;
+use actix_web;
+use honeybadger;
 #[macro_use]
 extern crate failure;
-extern crate futures;
-extern crate serde_urlencoded;
+
+use serde_urlencoded;
 
 use futures::prelude::*;
 
