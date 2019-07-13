@@ -7,16 +7,15 @@ extern crate honeybadger_actix_web;
 extern crate failure;
 
 use actix_web::error::ResponseError;
-use actix_web::http::Method;
-use actix_web::{server, App, Path, Responder};
+use actix_web::{web, App, HttpServer, Responder};
 use failure::Backtrace;
 use honeybadger_actix_web::HoneybadgerMiddleware;
 
-fn index(_: Path<()>) -> impl Responder {
+fn index(_: web::Path<()>) -> impl Responder {
     "Hello, world!"
 }
 
-fn ping(_: Path<()>) -> impl Responder {
+fn ping(_: web::Path<()>) -> impl Responder {
     "pong"
 }
 
@@ -26,7 +25,7 @@ struct MyError(#[cause] std::io::Error, Backtrace);
 
 impl ResponseError for MyError {}
 
-fn error(_: Path<()>) -> actix_web::error::Result<String> {
+fn error(_: web::Path<()>) -> actix_web::error::Result<String> {
     use std::io::Read;
     let mut f = std::fs::File::open("quux.quux").map_err(|e| MyError(e, Backtrace::new()))?;
     let mut contents = String::new();
@@ -35,22 +34,23 @@ fn error(_: Path<()>) -> actix_web::error::Result<String> {
     Ok(contents)
 }
 
-fn error_panic(_: Path<()>) -> &'static str {
+fn error_panic(_: web::Path<()>) -> &'static str {
     panic!("/error_panic is requested");
 }
 
 fn main() {
     honeybadger::setup();
 
-    server::new(|| {
+    HttpServer::new(|| {
         App::new()
-            .middleware(HoneybadgerMiddleware::new())
-            .route("/", Method::GET, index)
-            .route("/ping", Method::GET, ping)
-            .route("/error", Method::GET, error)
-            .route("/error_panic", Method::GET, error_panic)
+            .wrap(HoneybadgerMiddleware::new())
+            .route("/", web::get().to(index))
+            .route("/ping", web::get().to(ping))
+            .route("/error", web::get().to(error))
+            .route("/error_panic", web::get().to(error_panic))
     })
     .bind("localhost:7878")
     .expect("bind failed")
-    .run();
+    .run()
+    .unwrap();
 }
