@@ -5,8 +5,8 @@ use chrono::Utc;
 use serde_json;
 use uuid::Uuid;
 
-use config;
-use stats;
+use crate::config;
+use crate::stats;
 
 /// Notification payload.
 #[derive(Debug, Serialize, Default)]

@@ -4,7 +4,7 @@
 
 use std::cell::RefCell;
 
-use payload::RequestInfo;
+use crate::payload::RequestInfo;
 
 scoped_thread_local!(
     static SCOPED_CONTEXT: RequestInfo

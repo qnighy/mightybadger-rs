@@ -29,18 +29,18 @@ pub mod payload;
 mod stats;
 
 use failure::{Backtrace, Fail};
-use payload::*;
+use crate::payload::*;
 use rand::RngCore;
 use reqwest::header::{ACCEPT, CONTENT_TYPE, USER_AGENT};
 use reqwest::StatusCode;
 use std::fmt;
 use std::panic::{set_hook, take_hook, PanicInfo};
 use uuid::Uuid;
-use HoneybadgerError::*;
+use crate::HoneybadgerError::*;
 
-pub use config::configure;
-pub use config::configure_from_env;
-pub use payload::Payload;
+pub use crate::config::configure;
+pub use crate::config::configure_from_env;
+pub use crate::payload::Payload;
 
 #[derive(Debug, Fail)]
 #[fail(display = "{}", message)]
@@ -129,18 +129,18 @@ fn honeybadger_panic_hook(panic_info: &PanicInfo) {
     notify(&Panic::new(panic_info));
 }
 
-pub fn notify(error: &Fail) {
+pub fn notify(error: &dyn Fail) {
     notify_either(FailOrError::Fail(error))
 }
 
-pub fn notify_std_error(error: &(std::error::Error + 'static)) {
+pub fn notify_std_error(error: &(dyn std::error::Error + 'static)) {
     notify_either(FailOrError::StdError(error))
 }
 
 #[derive(Debug, Clone, Copy)]
 enum FailOrError<'a> {
-    Fail(&'a Fail),
-    StdError(&'a (std::error::Error + 'static)),
+    Fail(&'a dyn Fail),
+    StdError(&'a (dyn std::error::Error + 'static)),
 }
 
 impl<'a> FailOrError<'a> {
@@ -330,7 +330,7 @@ fn error_class<'a>(error: FailOrError<'a>) -> String {
     fail_classes!(honeybadger::Panic,);
     // hack for stringify
     mod honeybadger {
-        pub use Panic;
+        pub use crate::Panic;
     }
     return "Fail".to_string();
 }
