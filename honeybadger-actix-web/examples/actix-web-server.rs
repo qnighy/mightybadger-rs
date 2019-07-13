@@ -1,14 +1,6 @@
-extern crate actix_web;
-
-extern crate honeybadger;
-extern crate honeybadger_actix_web;
-
-#[macro_use]
-extern crate failure;
-
 use actix_web::error::ResponseError;
 use actix_web::{web, App, HttpServer, Responder};
-use failure::Backtrace;
+use failure::{Backtrace, Fail};
 use honeybadger_actix_web::HoneybadgerMiddleware;
 
 fn index(_: web::Path<()>) -> impl Responder {

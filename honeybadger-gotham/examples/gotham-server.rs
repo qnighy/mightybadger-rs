@@ -1,11 +1,3 @@
-extern crate gotham;
-extern crate hyper;
-extern crate mime;
-extern crate tokio;
-
-extern crate honeybadger;
-extern crate honeybadger_gotham;
-
 use gotham::handler::HandlerFuture;
 use gotham::helpers::http::response::create_response;
 use gotham::pipeline::new_pipeline;

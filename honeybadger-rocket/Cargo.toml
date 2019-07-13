@@ -3,6 +3,7 @@ name = "honeybadger-rocket"
 description = "Honeybadger Notifier for Rust, middleware for Rocket"
 version = "0.1.0"
 authors = ["Masaki Hara <ackie.h.gmai@gmail.com>"]
+edition = "2018"
 
 homepage = "https://github.com/qnighy/honeybadger-rs"
 repository = "https://github.com/qnighy/honeybadger-rs.git"

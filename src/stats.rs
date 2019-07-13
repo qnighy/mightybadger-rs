@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-use payload::{LoadInfo, MemoryInfo, Stats};
+use crate::payload::{LoadInfo, MemoryInfo, Stats};
 
 pub(crate) fn get_stats() -> Stats {
     Stats {

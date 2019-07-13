@@ -1,15 +1,8 @@
-extern crate futures;
-extern crate gotham;
-#[macro_use]
-extern crate gotham_derive;
-extern crate hyper;
-
-extern crate honeybadger;
-
 use futures::{Future, Poll};
 use gotham::handler::HandlerFuture;
 use gotham::middleware::Middleware;
 use gotham::state::{FromState, State};
+use gotham_derive::NewMiddleware;
 use hyper::HeaderMap;
 use std::collections::HashMap;
 

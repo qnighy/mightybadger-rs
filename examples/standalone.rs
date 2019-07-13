@@ -1,5 +1,3 @@
-extern crate honeybadger;
-
 use std::fs::File;
 
 fn main() {

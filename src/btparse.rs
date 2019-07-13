@@ -5,7 +5,7 @@ use std::mem;
 
 use failure::Backtrace;
 
-use payload::BacktraceEntry;
+use crate::payload::BacktraceEntry;
 
 #[derive(Debug, Clone)]
 pub struct BacktraceLine {
@@ -48,7 +48,7 @@ pub fn parse(bt: &Backtrace) -> Vec<BacktraceLine> {
         } else {
             line
         };
-        let line = line.trim_left();
+        let line = line.trim_start();
 
         // Skip "0x<ptr>"
         let line = if line.starts_with("0x") {
@@ -58,7 +58,7 @@ pub fn parse(bt: &Backtrace) -> Vec<BacktraceLine> {
         } else {
             line
         };
-        let line = line.trim_left();
+        let line = line.trim_start();
 
         // Skip "-"
         let line = if line.starts_with("-") {
@@ -66,7 +66,7 @@ pub fn parse(bt: &Backtrace) -> Vec<BacktraceLine> {
         } else {
             line
         };
-        let line = line.trim_left();
+        let line = line.trim_start();
 
         if line == "" {
             continue;
@@ -75,7 +75,7 @@ pub fn parse(bt: &Backtrace) -> Vec<BacktraceLine> {
         // at <file>:<line>
         if line.starts_with("at ") {
             let line = &line["at ".len()..];
-            let line = line.trim_left();
+            let line = line.trim_start();
             if let Some(pos) = line.rfind(':') {
                 last_file = Some((
                     line[..pos].to_string(),
