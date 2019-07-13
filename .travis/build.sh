@@ -2,23 +2,25 @@
 set -ue
 set -o pipefail
 
-reset_fixvar() {
-  for cargo_toml in $(find . -name Cargo.toml); do
-    if [[ -e $cargo_toml.bak ]]; then
-      mv $cargo_toml.bak $cargo_toml
+backup() {
+  local file
+  for file in \
+    Cargo.lock \
+    Cargo.toml \
+    honeybadger-actix-web/Cargo.toml \
+    honeybadger-gotham/Cargo.toml \
+    honeybadger-rocket/Cargo.toml \
+  ; do
+    if [[ $1 = backup ]]; then
+      cp "$file" "$file.bak" || true
+    elif [[ $1 = restore ]]; then
+      mv "$file.bak" "$file" || true
     fi
   done
 }
 
-trap 'reset_fixvar' 1 2 3 15
-
-for cargo_toml in $(find . -name Cargo.toml); do
-  if [[ ${MINVER:-false} = true ]]; then
-    sed -e '/^\[dependencies\]$/,/^[.*]$/s/"\([0-9]\)/"=\1/g' -i.bak $cargo_toml
-  else
-    cp $cargo_toml $cargo_toml.bak
-  fi
-done
+trap 'backup restore' 1 2 3 15
+backup backup
 
 if .travis/build-impl.sh; then
   result=0
@@ -26,6 +28,6 @@ else
   result=$?
 fi
 
-reset_fixvar
+backup restore
 
 exit $result
