@@ -3,6 +3,7 @@ name = "honeybadger"
 description = "Honeybadger Notifier for Rust"
 version = "0.1.0"
 authors = ["Masaki Hara <ackie.h.gmai@gmail.com>"]
+edition = "2018"
 build = "build.rs"
 
 homepage = "https://github.com/qnighy/honeybadger-rs"
