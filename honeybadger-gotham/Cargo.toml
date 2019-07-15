@@ -16,7 +16,7 @@ license = "MIT"
 futures = "0.1.23"
 hyper = { version = "0.12.7", default-features = false }
 gotham = "0.4.0"
-gotham_derive = "0.3.0"
+gotham_derive = "0.4.0"
 honeybadger = { path = ".." }
 
 [dev-dependencies]
