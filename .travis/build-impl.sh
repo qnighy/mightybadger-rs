@@ -2,8 +2,11 @@
 set -ue
 set -o pipefail
 
-PACKAGES=(honeybadger honeybadger-actix-web honeybadger-gotham)
-if [[ ${RUSTUP_TOOLCHAIN:-} == nightly* || ${TRAVIS_RUST_VERSION:-} == nightly* ]]; then
+PACKAGES=(honeybadger honeybadger-gotham)
+if [[ ${RUSTUP_TOOLCHAIN:-${TRAVIS_RUST_VERSION:-}} != "1.34.2" ]]; then
+  PACKAGES+=(honeybadger-actix-web)
+fi
+if [[ ${RUSTUP_TOOLCHAIN:-${TRAVIS_RUST_VERSION:-}} == nightly* ]]; then
   PACKAGES+=(honeybadger-rocket)
 fi
 
