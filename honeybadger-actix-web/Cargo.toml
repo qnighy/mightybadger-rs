@@ -17,7 +17,7 @@ futures = { version = "0.1.27" }
 actix-web = { version = "1.0.3", default-features = false }
 honeybadger = { path = ".." }
 failure = "0.1.5"
-serde_urlencoded = "0.5.5"
+serde_urlencoded = "0.6.1"
 
 [dev-dependencies]
 actix-web = { version = "1.0.3", default-features = true }
