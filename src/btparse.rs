@@ -195,8 +195,7 @@ mod tests {
             let bt_lines = parse(&bt);
             // eprintln!("bt_lines = {:#?}", bt_lines);
             assert!(bt_lines.iter().any(|bt_line| {
-                let method_ok = bt_line
-                    .method
+                let method_ok = format!("{}::", bt_line.method)
                     .starts_with("honeybadger::btparse::tests::test_backtrace::f::");
                 let file_ok = bt_line
                     .file
