@@ -6,8 +6,8 @@ authors = ["Masaki Hara <ackie.h.gmai@gmail.com>"]
 edition = "2018"
 build = "build.rs"
 
-homepage = "https://github.com/qnighy/honeybadger-rs"
-repository = "https://github.com/qnighy/honeybadger-rs.git"
+homepage = "https://github.com/qnighy/mightybadger-rs"
+repository = "https://github.com/qnighy/mightybadger-rs.git"
 readme = "README.md"
 keywords = ["honeybadger"]
 categories = ["web-programming", "api-bindings", "development-tools"]

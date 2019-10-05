@@ -10,7 +10,7 @@ In addition to standalone configuration, it provides middlewares for [Rocket](ht
 
 ```toml
 [dependencies]
-mightybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
+mightybadger = { git = "https://github.com/qnighy/mightybadger-rs.git", rev = "da98547" }
 ```
 
 ```rust
@@ -38,8 +38,8 @@ HONEYBADGER_API_KEY=your_own_api_key cargo run
 
 ```toml
 [dependencies]
-mightybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
-mightybadger-rocket = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
+mightybadger = { git = "https://github.com/qnighy/mightybadger-rs.git", rev = "da98547" }
+mightybadger-rocket = { git = "https://github.com/qnighy/mightybadger-rs.git", rev = "da98547" }
 ```
 
 ```rust
@@ -61,8 +61,8 @@ fn main() {
 
 ```toml
 [dependencies]
-mightybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
-mightybadger-gotham = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
+mightybadger = { git = "https://github.com/qnighy/mightybadger-rs.git", rev = "da98547" }
+mightybadger-gotham = { git = "https://github.com/qnighy/mightybadger-rs.git", rev = "da98547" }
 ```
 
 ```rust
@@ -93,8 +93,8 @@ fn main() {
 
 ```toml
 [dependencies]
-mightybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
-mightybadger-actix-web = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
+mightybadger = { git = "https://github.com/qnighy/mightybadger-rs.git", rev = "da98547" }
+mightybadger-actix-web = { git = "https://github.com/qnighy/mightybadger-rs.git", rev = "da98547" }
 ```
 
 ```rust
