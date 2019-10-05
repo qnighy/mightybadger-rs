@@ -39,7 +39,7 @@ HONEYBADGER_API_KEY=your_own_api_key cargo run
 ```toml
 [dependencies]
 mightybadger = { git = "https://github.com/qnighy/mightybadger-rs.git", rev = "da98547" }
-mightybadger-rocket = { git = "https://github.com/qnighy/mightybadger-rs.git", rev = "da98547" }
+mightybadger-rocket = { git = "https://github.com/qnighy/mightybadger-rocket.git", rev = "da98547" }
 ```
 
 ```rust
@@ -62,7 +62,7 @@ fn main() {
 ```toml
 [dependencies]
 mightybadger = { git = "https://github.com/qnighy/mightybadger-rs.git", rev = "da98547" }
-mightybadger-gotham = { git = "https://github.com/qnighy/mightybadger-rs.git", rev = "da98547" }
+mightybadger-gotham = { git = "https://github.com/qnighy/mightybadger-gotham.git", rev = "da98547" }
 ```
 
 ```rust
@@ -94,7 +94,7 @@ fn main() {
 ```toml
 [dependencies]
 mightybadger = { git = "https://github.com/qnighy/mightybadger-rs.git", rev = "da98547" }
-mightybadger-actix-web = { git = "https://github.com/qnighy/mightybadger-rs.git", rev = "da98547" }
+mightybadger-actix-web = { git = "https://github.com/qnighy/mightybadger-actix-web.git", rev = "da98547" }
 ```
 
 ```rust
