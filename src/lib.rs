@@ -197,8 +197,8 @@ fn notify_internal<'a>(
         btparse::parse_and_decorate(&Backtrace::new())
     };
     let notifier_info = Some(NotifierInfo {
-        name: "honeybadger-rust",
-        url: "https://github.com/qnighy/honeybadger-rs",
+        name: "mightybadger-rust",
+        url: "https://github.com/qnighy/mightybadger-rs",
         version: env!("CARGO_PKG_VERSION"),
         language: "rust",
     });
