@@ -2,27 +2,27 @@
 set -ue
 set -o pipefail
 
-PACKAGES=(honeybadger honeybadger-gotham)
+PACKAGES=(mightybadger mightybadger-gotham)
 if [[ ${RUSTUP_TOOLCHAIN:-${TRAVIS_RUST_VERSION:-}} != "1.34.2" ]]; then
-  PACKAGES+=(honeybadger-actix-web)
+  PACKAGES+=(mightybadger-actix-web)
 fi
 if [[ ${RUSTUP_TOOLCHAIN:-${TRAVIS_RUST_VERSION:-}} == nightly* ]]; then
-  PACKAGES+=(honeybadger-rocket)
+  PACKAGES+=(mightybadger-rocket)
 fi
 
 for package in "${PACKAGES[@]}"; do
   rm -f Cargo.lock
   for file in \
     Cargo.toml \
-    honeybadger-actix-web/Cargo.toml \
-    honeybadger-gotham/Cargo.toml \
-    honeybadger-rocket/Cargo.toml \
+    mightybadger-actix-web/Cargo.toml \
+    mightybadger-gotham/Cargo.toml \
+    mightybadger-rocket/Cargo.toml \
   ; do
     cat "$file.bak" | head -n 4 > "$file"
   done
 
   case "$package" in
-    honeybadger)
+    mightybadger)
       dep_cargo_tomls=()
       cargo_toml=Cargo.toml
     ;;

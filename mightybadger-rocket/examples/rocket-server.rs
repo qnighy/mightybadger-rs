@@ -18,9 +18,9 @@ fn error() -> &'static str {
 }
 
 fn main() {
-    honeybadger::setup();
+    mightybadger::setup();
     rocket::ignite()
         .mount("/", routes![index, ping, error])
-        .attach(honeybadger_rocket::HoneybadgerHook::new())
+        .attach(mightybadger_rocket::HoneybadgerHook::new())
         .launch();
 }

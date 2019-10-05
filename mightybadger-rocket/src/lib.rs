@@ -1,4 +1,4 @@
-use honeybadger::payload::RequestInfo;
+use mightybadger::payload::RequestInfo;
 use rocket::fairing::{Fairing, Info, Kind};
 use rocket::{Data, Request, Response};
 use std::collections::HashMap;
@@ -50,10 +50,10 @@ impl Fairing for HoneybadgerHook {
             cgi_data: cgi_data,
             ..Default::default()
         };
-        honeybadger::context::set(request_info);
+        mightybadger::context::set(request_info);
     }
 
     fn on_response(&self, _request: &Request<'_>, _response: &mut Response<'_>) {
-        honeybadger::context::unset();
+        mightybadger::context::unset();
     }
 }

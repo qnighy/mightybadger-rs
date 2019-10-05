@@ -1,7 +1,7 @@
 use actix_web::error::ResponseError;
 use actix_web::{web, App, HttpServer, Responder};
 use failure::{Backtrace, Fail};
-use honeybadger_actix_web::HoneybadgerMiddleware;
+use mightybadger_actix_web::HoneybadgerMiddleware;
 
 fn index(_: web::Path<()>) -> impl Responder {
     "Hello, world!"
@@ -31,7 +31,7 @@ fn error_panic(_: web::Path<()>) -> &'static str {
 }
 
 fn main() {
-    honeybadger::setup();
+    mightybadger::setup();
 
     HttpServer::new(|| {
         App::new()

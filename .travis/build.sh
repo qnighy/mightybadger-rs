@@ -7,9 +7,9 @@ backup() {
   for file in \
     Cargo.lock \
     Cargo.toml \
-    honeybadger-actix-web/Cargo.toml \
-    honeybadger-gotham/Cargo.toml \
-    honeybadger-rocket/Cargo.toml \
+    mightybadger-actix-web/Cargo.toml \
+    mightybadger-gotham/Cargo.toml \
+    mightybadger-rocket/Cargo.toml \
   ; do
     if [[ $1 = backup ]]; then
       cp "$file" "$file.bak" || true

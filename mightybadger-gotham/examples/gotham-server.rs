@@ -13,7 +13,7 @@ use tokio::timer::Delay;
 fn router() -> Router {
     let (chain, pipelines) = single_pipeline(
         new_pipeline()
-            .add(honeybadger_gotham::HoneybadgerMiddleware)
+            .add(mightybadger_gotham::HoneybadgerMiddleware)
             .build(),
     );
     build_router(chain, pipelines, |route| {
@@ -51,7 +51,7 @@ fn error_wait(_state: State) -> Box<HandlerFuture> {
 }
 
 fn main() {
-    honeybadger::setup();
+    mightybadger::setup();
     let addr = "127.0.0.1:7878";
     gotham::start(addr, router())
 }

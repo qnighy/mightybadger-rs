@@ -103,7 +103,7 @@ pub fn parse(bt: &Backtrace) -> Vec<BacktraceLine> {
 
 pub fn trim_backtrace(bt_lines: &mut Vec<BacktraceLine>) {
     let trim_paths = [
-        "honeybadger::notify::",
+        "mightybadger::notify::",
         "backtrace::backtrace::capture::Backtrace::new::",
         "backtrace::backtrace::capture::Backtrace::new_unresolved::",
         "failure::backtrace::Backtrace::new::",
@@ -196,7 +196,7 @@ mod tests {
             // eprintln!("bt_lines = {:#?}", bt_lines);
             assert!(bt_lines.iter().any(|bt_line| {
                 let method_ok = format!("{}::", bt_line.method)
-                    .starts_with("honeybadger::btparse::tests::test_backtrace::f::");
+                    .starts_with("mightybadger::btparse::tests::test_backtrace::f::");
                 let file_ok = bt_line
                     .file
                     .as_ref()

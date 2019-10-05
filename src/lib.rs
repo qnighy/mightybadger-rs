@@ -197,8 +197,8 @@ fn notify_internal<'a>(
         btparse::parse_and_decorate(&Backtrace::new())
     };
     let notifier_info = Some(NotifierInfo {
-        name: "honeybadger-rust",
-        url: "https://github.com/qnighy/honeybadger-rs",
+        name: "mightybadger-rust",
+        url: "https://github.com/qnighy/mightybadger-rs",
         version: env!("CARGO_PKG_VERSION"),
         language: "rust",
     });
@@ -311,9 +311,9 @@ fn error_class<'a>(error: FailOrError<'a>) -> String {
         // std::sync::mpsc::TrySendError<T>,
         std::time::SystemTimeError,
     );
-    fail_classes!(honeybadger::Panic,);
+    fail_classes!(mightybadger::Panic,);
     // hack for stringify
-    mod honeybadger {
+    mod mightybadger {
         pub use crate::Panic;
     }
     return "Fail".to_string();

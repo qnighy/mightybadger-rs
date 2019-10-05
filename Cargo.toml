@@ -1,13 +1,13 @@
 [package]
-name = "honeybadger"
+name = "mightybadger"
 description = "Honeybadger Notifier for Rust"
 version = "0.1.0"
 authors = ["Masaki Hara <ackie.h.gmai@gmail.com>"]
 edition = "2018"
 build = "build.rs"
 
-homepage = "https://github.com/qnighy/honeybadger-rs"
-repository = "https://github.com/qnighy/honeybadger-rs.git"
+homepage = "https://github.com/qnighy/mightybadger-rs"
+repository = "https://github.com/qnighy/mightybadger-rs.git"
 readme = "README.md"
 keywords = ["honeybadger"]
 categories = ["web-programming", "api-bindings", "development-tools"]
@@ -33,7 +33,7 @@ rocket = { git = "https://github.com/SergioBenitez/Rocket.git" }
 [workspace]
 
 members = [
-  "honeybadger-rocket",
-  "honeybadger-gotham",
-  "honeybadger-actix-web",
+  "mightybadger-rocket",
+  "mightybadger-gotham",
+  "mightybadger-actix-web",
 ]

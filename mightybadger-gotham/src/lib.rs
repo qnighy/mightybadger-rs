@@ -6,7 +6,7 @@ use gotham_derive::NewMiddleware;
 use hyper::HeaderMap;
 use std::collections::HashMap;
 
-use honeybadger::payload::RequestInfo;
+use mightybadger::payload::RequestInfo;
 
 #[derive(Clone, NewMiddleware)]
 pub struct HoneybadgerMiddleware;
@@ -28,7 +28,7 @@ impl<F: Future> Future for WithRequestContext<F> {
 
     fn poll(&mut self) -> Poll<F::Item, F::Error> {
         let inner = &mut self.inner;
-        honeybadger::context::with(&self.context, || inner.poll())
+        mightybadger::context::with(&self.context, || inner.poll())
     }
 }
 
@@ -59,7 +59,7 @@ impl Middleware for HoneybadgerMiddleware {
                 ..Default::default()
             }
         };
-        let f = honeybadger::context::with(&request_info, || chain(state));
+        let f = mightybadger::context::with(&request_info, || chain(state));
         let f = WithRequestContext::new(f, request_info);
         Box::new(f)
     }
