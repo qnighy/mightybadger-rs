@@ -33,7 +33,7 @@ use lazy_static::lazy_static;
 /// ## Examples
 ///
 /// ```
-/// honeybadger::configure(|config| {
+/// mightybadger::configure(|config| {
 ///     config.api_key = Some("abcd1234".to_string());
 ///     config.env = Some("production".to_string());
 /// });
@@ -98,7 +98,7 @@ lazy_static! {
 ///
 /// Replaces the config only if the field is `None`.
 ///
-/// It is called as a part of [`honeybadger::setup`][::setup].
+/// It is called as a part of [`mightybadger::setup`][::setup].
 ///
 /// [::setup]: ../fn.setup.html
 pub fn configure_from_env() {
@@ -147,7 +147,7 @@ pub fn configure_from_env() {
 /// ## Example
 ///
 /// ```
-/// honeybadger::configure(|config| {
+/// mightybadger::configure(|config| {
 ///     config.env = Some("staging".to_string());
 /// });
 /// ```
@@ -183,7 +183,7 @@ where
 {
     let mut config_proxy = CONFIG_PROXY
         .write()
-        .expect("Could not acquire write-lock for honeybadger::config::CONFIG_PROXY.");
+        .expect("Could not acquire write-lock for mightybadger::config::CONFIG_PROXY.");
     let result = {
         let f = AssertUnwindSafe(f);
         let config_proxy = AssertUnwindSafe(&mut config_proxy as &mut Config);
@@ -207,7 +207,7 @@ where
 fn replace_config(new_config: Config) -> Config {
     let mut config = CONFIG
         .write()
-        .expect("Could not acquire write-lock for honeybadger::config::CONFIG.");
+        .expect("Could not acquire write-lock for mightybadger::config::CONFIG.");
     mem::replace(&mut config, new_config)
 }
 
@@ -235,14 +235,14 @@ impl Deref for ConfigReadGuard {
 /// ## Example
 ///
 /// ```
-/// let config = honeybadger::config::read_config();
+/// let config = mightybadger::config::read_config();
 /// println!("config.env = {:?}", config.env);
 /// ```
 pub fn read_config() -> ConfigReadGuard {
     ConfigReadGuard(
         CONFIG
             .read()
-            .expect("Could not acquire read-lock for honeybadger::config::CONFIG"),
+            .expect("Could not acquire read-lock for mightybadger::config::CONFIG"),
     )
 }
 

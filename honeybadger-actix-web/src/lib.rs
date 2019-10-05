@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use actix_web::dev::{Service, ServiceRequest, ServiceResponse, Transform};
 use actix_web::http::{HeaderMap, StatusCode, Uri};
 use failure::Fail;
-use honeybadger::payload::RequestInfo;
+use mightybadger::payload::RequestInfo;
 
 use futures::future::{self, FutureResult};
 
@@ -141,12 +141,12 @@ where
                 ..Default::default()
             }
         };
-        honeybadger::context::with(&request_info, || {
+        mightybadger::context::with(&request_info, || {
             if let Err(error) = resp {
-                honeybadger::notify_std_error(error);
+                mightybadger::notify_std_error(error);
             } else {
                 let error = ErrorStatus(status);
-                honeybadger::notify(&error);
+                mightybadger::notify(&error);
             }
         });
     }

@@ -1,5 +1,5 @@
 [package]
-name = "honeybadger-actix-web"
+name = "mightybadger-actix-web"
 description = "Honeybadger Notifier for Rust, middleware for Actix Web"
 version = "0.1.0"
 authors = ["Masaki Hara <ackie.h.gmai@gmail.com>"]
@@ -15,7 +15,7 @@ license = "MIT"
 [dependencies]
 futures = { version = "0.1.27" }
 actix-web = { version = "1.0.3", default-features = false }
-honeybadger = { path = ".." }
+mightybadger = { path = ".." }
 failure = "0.1.5"
 serde_urlencoded = "0.6.1"
 

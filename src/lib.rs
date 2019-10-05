@@ -311,9 +311,9 @@ fn error_class<'a>(error: FailOrError<'a>) -> String {
         // std::sync::mpsc::TrySendError<T>,
         std::time::SystemTimeError,
     );
-    fail_classes!(honeybadger::Panic,);
+    fail_classes!(mightybadger::Panic,);
     // hack for stringify
-    mod honeybadger {
+    mod mightybadger {
         pub use crate::Panic;
     }
     return "Fail".to_string();

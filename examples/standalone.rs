@@ -1,11 +1,11 @@
 use std::fs::File;
 
 fn main() {
-    honeybadger::setup();
+    mightybadger::setup();
 
     match File::open("quux.quux") {
         Ok(_) => eprintln!("quux.quux exists."),
-        Err(e) => honeybadger::notify(&e),
+        Err(e) => mightybadger::notify(&e),
     };
 
     panic!("test panic");

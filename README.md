@@ -2,7 +2,7 @@
 
 [Honeybadger](https://www.honeybadger.io/) is an error-tracking service run by Honeybadger Industries LLC.
 
-`honeybadger-rs` is an unofficial Honeybadger notifier for Rust, which hooks into panics and error responses, collects related information, and sends reports to the Honeybadger API server.
+`mightybadger-rs` is an unofficial Honeybadger notifier for Rust, which hooks into panics and error responses, collects related information, and sends reports to the Honeybadger API server.
 
 In addition to standalone configuration, it provides middlewares for [Rocket](https://rocket.rs/), [Gotham](https://gotham.rs/), and [Actix Web](https://actix.rs/).
 
@@ -10,20 +10,20 @@ In addition to standalone configuration, it provides middlewares for [Rocket](ht
 
 ```toml
 [dependencies]
-honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
+mightybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
 ```
 
 ```rust
-extern crate honeybadger;
+extern crate mightybadger;
 
 use std::fs::File;
 
 fn main() {
-    honeybadger::setup();
+    mightybadger::setup();
 
     match File::open("quux.quux") {
         Ok(_) => eprintln!("quux.quux exists."),
-        Err(e) => honeybadger::notify(&e),
+        Err(e) => mightybadger::notify(&e),
     };
 
     panic!("test panic");
@@ -38,21 +38,21 @@ HONEYBADGER_API_KEY=your_own_api_key cargo run
 
 ```toml
 [dependencies]
-honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
-honeybadger-rocket = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
+mightybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
+mightybadger-rocket = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
 ```
 
 ```rust
-extern crate honeybadger;
-extern crate honeybadger_rocket;
+extern crate mightybadger;
+extern crate mightybadger_rocket;
 
 ...
 
 fn main() {
-    honeybadger::setup();
+    mightybadger::setup();
     rocket::ignite()
         ...
-        .attach(honeybadger_rocket::HoneybadgerHook::new())
+        .attach(mightybadger_rocket::HoneybadgerHook::new())
         .launch();
 }
 ```
@@ -61,20 +61,20 @@ fn main() {
 
 ```toml
 [dependencies]
-honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
-honeybadger-gotham = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
+mightybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
+mightybadger-gotham = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
 ```
 
 ```rust
-extern crate honeybadger;
-extern crate honeybadger_gotham;
+extern crate mightybadger;
+extern crate mightybadger_gotham;
 
 ...
 
 fn router() -> Router {
     let (chain, pipelines) = single_pipeline(
         new_pipeline()
-            .add(honeybadger_gotham::HoneybadgerMiddleware)
+            .add(mightybadger_gotham::HoneybadgerMiddleware)
             .build(),
     );
     build_router(chain, pipelines, |route| { ... })
@@ -83,7 +83,7 @@ fn router() -> Router {
 ...
 
 fn main() {
-    honeybadger::setup();
+    mightybadger::setup();
     gotham::start(..., router())
 }
 ```
@@ -93,22 +93,22 @@ fn main() {
 
 ```toml
 [dependencies]
-honeybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
-honeybadger-actix-web = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
+mightybadger = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
+mightybadger-actix-web = { git = "https://github.com/qnighy/honeybadger-rs.git", rev = "da98547" }
 ```
 
 ```rust
-extern crate honeybadger;
-extern crate honeybadger_actix_web;
+extern crate mightybadger;
+extern crate mightybadger_actix_web;
 
 ...
 
 fn main() {
-    honeybadger::setup();
+    mightybadger::setup();
 
     server::new(|| {
         App::new()
-            .middleware(honeybadger_actiX_web::HoneybadgerMiddleware::new())
+            .middleware(mightybadger_actiX_web::HoneybadgerMiddleware::new())
             ..
     }).bind(..)
         .unwrap()
@@ -118,7 +118,7 @@ fn main() {
 
 ## Configuration
 
-It automatically reads the following environment variables at `honeybadger::setup()`:
+It automatically reads the following environment variables at `mightybadger::setup()`:
 
 - `HONEYBADGER_API_KEY`
 - `HONEYBADGER_ENV`
@@ -127,12 +127,12 @@ It automatically reads the following environment variables at `honeybadger::setu
 - `HONEYBADGER_REVISION`
 - `HONEYBADGER_HOSTNAME`
 
-Moreover, you can programmatically configure Honeybadger as follows:
+Moreover, you can programmatically configure the Honeybadger client as follows:
 
 ```rust
 fn main() {
-    honeybadger::setup();
-    honeybadger::configure(|config| {
+    mightybadger::setup();
+    mightybadger::configure(|config| {
         if config.api_key.is_none() {
             config.api_key = Some("abcd1234".to_string());
         }
