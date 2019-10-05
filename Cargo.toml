@@ -33,7 +33,7 @@ rocket = { git = "https://github.com/SergioBenitez/Rocket.git" }
 [workspace]
 
 members = [
-  "honeybadger-rocket",
-  "honeybadger-gotham",
-  "honeybadger-actix-web",
+  "mightybadger-rocket",
+  "mightybadger-gotham",
+  "mightybadger-actix-web",
 ]
