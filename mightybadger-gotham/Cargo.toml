@@ -23,4 +23,4 @@ mightybadger = { path = ".." }
 mime = "0.3.7"
 tokio = "0.1.9"
 # 0.13.4 contains incompatibility with cargo_metadata 0.6, which leads to build failure
-skeptic = ">=0.13.0, <0.13.4"
+skeptic = ">=0.13.0, <0.13.5"
