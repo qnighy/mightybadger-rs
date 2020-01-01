@@ -70,7 +70,10 @@ struct HoneybadgerResponse {
     id: Uuid,
 }
 
-fn report(payload: &Payload) -> Result<HoneybadgerResponse, HoneybadgerError> {
+fn report(
+    payload: &Payload,
+    config: &config::Config,
+) -> Result<HoneybadgerResponse, HoneybadgerError> {
     let api_key = payload.api_key.clone();
     let payload =
         serde_json::to_string(payload).map_err(|e| CouldNotAssemblePayload(e, Backtrace::new()))?;
@@ -82,8 +85,21 @@ fn report(payload: &Payload) -> Result<HoneybadgerResponse, HoneybadgerError> {
         rustc_version_runtime::version(),
         env!("HONEYBADGER_CLIENT_ARCH"),
     );
+    let scheme = if config.connection.secure.unwrap_or(true) {
+        "https"
+    } else {
+        "http"
+    };
+    let host = config
+        .connection
+        .host
+        .as_ref()
+        .map(|x| x.as_str())
+        .unwrap_or("api.honeybadger.io");
+    let port = config.connection.port.unwrap_or(443);
+    let url = format!("{}://{}:{}/v1/notices", scheme, host, port);
     let resp = client
-        .post("https://api.honeybadger.io/v1/notices")
+        .post(&url)
         .body(payload)
         .header("X-API-Key", api_key)
         .header(CONTENT_TYPE, "application/json")
@@ -235,7 +251,7 @@ fn notify_internal<'a>(
         server: server_info,
     };
     payload.sanitize();
-    report(&payload)
+    report(&payload, &config)
 }
 
 fn error_class<'a>(error: FailOrError<'a>) -> String {
