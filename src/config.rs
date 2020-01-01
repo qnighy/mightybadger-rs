@@ -14,6 +14,7 @@ use std::env;
 use std::mem;
 use std::ops::Deref;
 use std::panic::{catch_unwind, resume_unwind, AssertUnwindSafe};
+use std::str::FromStr;
 use std::sync::{RwLock, RwLockReadGuard};
 
 use lazy_static::lazy_static;
@@ -53,8 +54,30 @@ pub struct Config {
     pub revision: Option<String>,
     /// The hostname of the current box.
     pub hostname: Option<String>,
+    /// HTTP connection options.
+    pub connection: ConnectionConfig,
     /// Request data filtering options.
     pub request: RequestConfig,
+    #[doc(hidden)]
+    pub _non_exhaustive: (),
+}
+
+/// HTTP connection options.
+///
+/// This is part of [`Config`][Config] data structure.
+///
+/// [Config]: struct.Config.html
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
+pub struct ConnectionConfig {
+    /// Whether to use TLS when sending data.
+    /// Defaults to `true`.
+    pub secure: Option<bool>,
+    /// The host to use when sending data.
+    /// Defaults to `api.honeybadger.io`.
+    pub host: Option<String>,
+    /// The port to use when sending data.
+    /// Defaults to 443.
+    pub port: Option<u16>,
     #[doc(hidden)]
     pub _non_exhaustive: (),
 }
@@ -108,6 +131,13 @@ pub fn configure_from_env() {
         }
     }
 
+    fn set_parseable<T: FromStr>(entry: &mut Option<T>, env_name: &str) {
+        if entry.is_none() {
+            *entry =
+                env::var_os(env_name).and_then(|s| s.to_string_lossy().to_string().parse().ok());
+        }
+    }
+
     fn set_bool(entry: &mut Option<bool>, env_name: &str) {
         if entry.is_none() {
             *entry = env::var_os(env_name).map(|s| {
@@ -135,6 +165,12 @@ pub fn configure_from_env() {
         set_string(&mut config.root, "HONEYBADGER_ROOT");
         set_string(&mut config.revision, "HONEYBADGER_REVISION");
         set_string(&mut config.hostname, "HONEYBADGER_HOSTNAME");
+        set_bool(
+            &mut config.connection.secure,
+            "HONEYBADGER_CONNECTION_SECURE",
+        );
+        set_string(&mut config.connection.host, "HONEYBADGER_CONNECTION_HOST");
+        set_parseable(&mut config.connection.port, "HONEYBADGER_CONNECTION_PORT");
         set_string_array(
             &mut config.request.filter_keys,
             "HONEYBADGER_REQUEST_FILTER_KEYS",
