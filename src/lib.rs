@@ -8,10 +8,10 @@ mod stats;
 
 use crate::payload::*;
 use crate::HoneybadgerError::*;
+use attohttpc::header::{ACCEPT, CONTENT_TYPE, USER_AGENT};
+use attohttpc::StatusCode;
 use failure::{Backtrace, Fail};
 use rand::RngCore;
-use reqwest::header::{ACCEPT, CONTENT_TYPE, USER_AGENT};
-use reqwest::StatusCode;
 use serde_derive::Deserialize;
 use std::fmt;
 use std::panic::{set_hook, take_hook, PanicInfo};
@@ -52,7 +52,7 @@ pub enum HoneybadgerError {
     #[fail(display = "could not assemble payload")]
     CouldNotAssemblePayload(#[cause] serde_json::Error, Backtrace),
     #[fail(display = "HTTP request failed")]
-    HttpRequestFailed(#[cause] reqwest::Error, Backtrace),
+    HttpRequestFailed(#[cause] attohttpc::Error, Backtrace),
     #[fail(display = "project is sending too many errors")]
     TooManyRequests(Backtrace),
     #[fail(display = "payment is required")]
@@ -62,7 +62,7 @@ pub enum HoneybadgerError {
     #[fail(display = "unknown response from server")]
     UnknownResponse(Backtrace),
     #[fail(display = "failed to decode response body")]
-    ResponseDecodeFailed(#[cause] reqwest::Error, Backtrace),
+    ResponseDecodeFailed(#[cause] attohttpc::Error, Backtrace),
 }
 
 #[derive(Deserialize)]
@@ -75,10 +75,6 @@ fn report(
     config: &config::Config,
 ) -> Result<HoneybadgerResponse, HoneybadgerError> {
     let api_key = payload.api_key.clone();
-    let payload =
-        serde_json::to_string(payload).map_err(|e| CouldNotAssemblePayload(e, Backtrace::new()))?;
-    // eprintln!("Payload = {}", payload);
-    let client = reqwest::Client::new();
     let client_version = format!(
         "HB-Rust {}; {}; {}",
         env!("CARGO_PKG_VERSION"),
@@ -98,15 +94,25 @@ fn report(
         .unwrap_or("api.honeybadger.io");
     let port = config.connection.port.unwrap_or(443);
     let url = format!("{}://{}:{}/v1/notices", scheme, host, port);
-    let resp = client
-        .post(&url)
-        .body(payload)
+    let resp = attohttpc::post(&url)
+        .json(payload)
+        .map_err(|e| {
+            if let attohttpc::ErrorKind::Json(_) = e.kind() {
+                if let attohttpc::ErrorKind::Json(e) = e.into_kind() {
+                    CouldNotAssemblePayload(e, Backtrace::new())
+                } else {
+                    unreachable!();
+                }
+            } else {
+                HttpRequestFailed(e, Backtrace::new())
+            }
+        })?
         .header("X-API-Key", api_key)
         .header(CONTENT_TYPE, "application/json")
         .header(ACCEPT, "application/json")
         .header(USER_AGENT, client_version)
         .send();
-    let mut resp = resp.map_err(|e| HttpRequestFailed(e, Backtrace::new()))?;
+    let resp = resp.map_err(|e| HttpRequestFailed(e, Backtrace::new()))?;
     match resp.status() {
         StatusCode::TOO_MANY_REQUESTS | StatusCode::SERVICE_UNAVAILABLE => {
             return Err(TooManyRequests(Backtrace::new()));
