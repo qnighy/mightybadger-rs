@@ -191,7 +191,7 @@ mod tests {
     #[test]
     fn test_backtrace() {
         fn f() {
-            let (bt, line) = (Backtrace::new(), line!());
+            let bt = Backtrace::new();
             let bt_lines = parse(&bt);
             // eprintln!("bt_lines = {:#?}", bt_lines);
             assert!(bt_lines.iter().any(|bt_line| {
@@ -200,10 +200,16 @@ mod tests {
                 let file_ok = bt_line
                     .file
                     .as_ref()
-                    .map(|file| file.ends_with("/btparse.rs"))
+                    .map(|file| {
+                        let file = if let Some(colon) = file.find(':') {
+                            &file[..colon]
+                        } else {
+                            &file[..]
+                        };
+                        file.ends_with("/btparse.rs")
+                    })
                     .unwrap_or(false);
-                let line_ok = bt_line.line == Some(line);
-                method_ok && file_ok && line_ok
+                method_ok && file_ok
             }));
         }
         env::set_var("RUST_BACKTRACE", "1");
