@@ -17,5 +17,5 @@ uuid = { version = "0.8.0", features = ["serde", "v4"] }
 serde = { version = "1.0.56", features = ["derive"] }
 serde_json = "1.0.3"
 futures = "0.3.1"
-tokio = { version = "0.2.6", features = ["rt-core", "io-driver"] }
+tokio = { version = "0.3.3", features = ["rt-core", "io-driver"] }
 hyper = "0.13.1"
