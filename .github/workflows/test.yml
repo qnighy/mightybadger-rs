@@ -1,0 +1,32 @@
+name: test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        rust: [1.42.0, stable, beta, nightly]
+        minver: [false]
+        include:
+        - rust: stable
+          minver: true
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install toolchain
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: ${{ matrix.rust }}
+        override: true
+    - name: Test
+      run: ci/build.sh
+      env:
+        MINVER: ${{ matrix.minver }}
+    - name: Check format
+      run: |
+        rustup component add rustfmt
+        cargo fmt --all -- --check
+      if: matrix.rust == 'stable'

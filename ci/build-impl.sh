@@ -12,7 +12,3 @@ cargo build --examples --verbose
 cargo test --verbose
 
 cp Cargo.toml.bak Cargo.toml
-
-if [[ ${TRAVIS_RUST_VERSION:-} = stable ]]; then
-  cargo fmt --all -- --check
-fi
