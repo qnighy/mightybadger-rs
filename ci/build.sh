@@ -19,7 +19,7 @@ backup() {
 trap 'backup restore' 1 2 3 15
 backup backup
 
-if .travis/build-impl.sh; then
+if ci/build-impl.sh; then
   result=0
 else
   result=$?
