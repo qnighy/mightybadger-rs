@@ -1,6 +1,7 @@
 use futures::prelude::*;
 
 use futures::task::{Context, Poll};
+use hyper::body;
 use hyper::server::conn::AddrStream;
 use hyper::service::Service as TowerService;
 use hyper::{Body, Method, Request, Response, StatusCode};
@@ -45,7 +46,7 @@ impl Service {
 
     async fn create_notice(&self, mut req: Request<Body>) -> Response<Body> {
         let body = std::mem::replace(req.body_mut(), Body::empty());
-        let body = if let Ok(body) = read_body(body).await {
+        let body = if let Ok(body) = body::to_bytes(body).await {
             body
         } else {
             return Response::builder()
@@ -102,13 +103,4 @@ impl TowerService<Request<Body>> for Service {
         let this = self.clone();
         async move { Ok(this.serve(req).await) }.boxed()
     }
-}
-
-async fn read_body(mut body: Body) -> Result<Vec<u8>, hyper::error::Error> {
-    let mut buf = Vec::new();
-    while let Some(chunk) = body.next().await {
-        let chunk = chunk?;
-        buf.extend_from_slice(&chunk);
-    }
-    Ok(buf)
 }

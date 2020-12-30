@@ -15,8 +15,7 @@ pub struct TestServer {
 
 impl TestServer {
     pub fn new() -> Self {
-        let mut rt = runtime::Builder::new()
-            .basic_scheduler()
+        let rt = runtime::Builder::new_current_thread()
             .enable_io()
             .build()
             .unwrap();
