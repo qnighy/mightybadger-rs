@@ -17,7 +17,7 @@ license = "MIT"
 lazy_static = "1.2.0"
 scoped-tls = "1.0.0"
 rand = "0.8.0"
-uuid = { version = "0.8.0", features = ["serde"] }
+uuid = { version = "1.0.0", features = ["serde"] }
 chrono = "0.4.0"
 serde = "1.0.56"
 serde_derive = "1.0.59"
